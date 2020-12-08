@@ -18,7 +18,7 @@ class TelegramController extends Controller
 		
 		
 		if(!empty($message['location'])){
-			$s=\App\Models\Curpoint::create(['lng'=>$message['location']['longitude'],'lat'=>$message['location']['latitude'],'timestamp'=>$tmessage->timestamp,'uid'=>$tmessage->user->telegram_id]);
+			$s=\App\Models\Curpoint::create(['lng'=>$message['location']['longitude'],'lat'=>$message['location']['latitude'],'timestamp'=>$tmessage->timestamp,'uid'=>$tmessage->uid]);
 		}
 		if(false){
 			$smessage=['chat_id'=>$tmessage->user->telegram_id];

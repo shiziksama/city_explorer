@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TelegramController;
+use App\Http\Controllers\TrackController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,6 +14,8 @@ use App\Http\Controllers\TelegramController;
 |
 */
 Route::any('telegramwebhook',[TelegramController::class,'webhook']);
+
+Route::get('{userslug}',[TrackController::class,'mymap']);
 
 //https://api.telegram.org/bot1400511618:AAFhsV1xuUOfwPSzOkAmqntVgLcu63WZv80/setWebhook?url=https://tracks.lamastravels.in.ua/telegramwebhook
 //
