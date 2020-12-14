@@ -16,6 +16,7 @@ use App\Http\Controllers\TrackController;
 Route::any('telegramwebhook',[TelegramController::class,'webhook']);
 
 Route::get('{userslug}',[TrackController::class,'mymap']);
+Route::get('/tracks/{id}',[TrackController::class,'singletrack']);
 
 //https://api.telegram.org/bot1400511618:AAFhsV1xuUOfwPSzOkAmqntVgLcu63WZv80/setWebhook?url=https://tracks.lamastravels.in.ua/telegramwebhook
 //

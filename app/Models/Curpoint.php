@@ -14,5 +14,7 @@ class Curpoint extends Model
         'lng',
         'timestamp',
         'uid',
+		'mid',
+		'horizontal_accuracy',
     ];
 }

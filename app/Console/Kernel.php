@@ -39,6 +39,6 @@ class Kernel extends ConsoleKernel
         require base_path('routes/console.php');
 		
 		
-		$schedule->command('track:points2track')->everyFiveMinutes();
+//		$schedule->command('track:points2track')->everyFiveMinutes();
     }
 }
