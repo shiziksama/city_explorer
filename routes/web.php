@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\TrackController;
+use App\Http\Controllers\SimplificationController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,10 +14,14 @@ use App\Http\Controllers\TrackController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::any('telegramwebhook',[TelegramController::class,'webhook']);
+Route::any('/telegramwebhook',[TelegramController::class,'webhook']);
 
-Route::get('{userslug}',[TrackController::class,'mymap']);
+Route::get('/{userslug}',[TrackController::class,'mymap']);
 Route::get('/tracks/{id}',[TrackController::class,'singletrack']);
+
+Route::get('/simplificator',[SimplificationController::class,'get']);
+
+
 
 //https://api.telegram.org/bot1400511618:AAFhsV1xuUOfwPSzOkAmqntVgLcu63WZv80/setWebhook?url=https://tracks.lamastravels.in.ua/telegramwebhook
 //
