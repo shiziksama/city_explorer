@@ -37,8 +37,7 @@ class Points2Track extends Command
      */
     public function handle()
     {
-		var_dump('some');
-		//$timestamp=time();
+		die();
 		$res=collect(\DB::select('select max(timestamp) as s,uid from curpoints group by uid order by s asc limit 1'))->first();
 		if($res->s>(time()-60*30)){
 			return;
@@ -52,11 +51,14 @@ class Points2Track extends Command
 		var_dump($min_timestamp);
 		$trackpoints=collect([]);
 		foreach($curpoints as $k=> $point){
-			if($k!=0&&$point->timestamp-$curpoints[$k]->timestamp >60*15){
+			if($k!=0&&$point->timestamp-$curpoints[$k-1]->timestamp >60*15){
 				break;
 			}
 			$trackpoints->push($point);
 		}
+		var_dump($trackpoints->count());
+		var_dump($curpoints->count());
+		//die();
 		
 		$wkt=$trackpoints->map(function($item){
 			return $item->lat.' '.$item->lng;
@@ -64,23 +66,23 @@ class Points2Track extends Command
 		$wkt='LINESTRING('.$wkt.')';
 		$w=$geometry->parseWkt($wkt);
 	
-		var_dump($w->toJson());
-		var_dump($w->toWkb());
+		//var_dump($w->toJson());
+		//var_dump($w->toWkb());
 		$track=new \App\Models\Track();
 		$track->track_original=$w->toWkb();
 		$track->track_simple=$w->toWkb();
 		$track->simplification_version=0;
 		$track->uid=$uid;
 		$track->date=date('Y-m-d H:i:s',$min_timestamp);
-		//$track->save();
 		
 		\DB::beginTransaction();
 		\DB::connection()->enableQueryLog();
 		$track->save();
 		\DB::delete('delete from curpoints where uid=? and timestamp between ? and ?',[$uid,$trackpoints->min('timestamp'),$trackpoints->max('timestamp')]);
 		var_dump(\DB::getQueryLog());
-		\DB::rollback();
-		die();
+		\DB::commit();
+		//\DB::rollback();
+		//die();
 		
 		
 		
