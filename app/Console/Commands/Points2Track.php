@@ -37,6 +37,7 @@ class Points2Track extends Command
      */
     public function handle()
     {
+		\App\Jobs\SendResultsJob::dispatchSync(67);
 		die();
 		$res=collect(\DB::select('select max(timestamp) as s,uid from curpoints group by uid order by s asc limit 1'))->first();
 		if($res->s>(time()-60*30)){

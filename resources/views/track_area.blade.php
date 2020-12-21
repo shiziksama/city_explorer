@@ -32,7 +32,7 @@ L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}@2x.png?apikey=cdee
     zoomOffset: -1,
     //accessToken: 'pk.eyJ1Ijoic2hpemlrc2FtYSIsImEiOiJja2I2bWNsbm0wMDJlMnFvYmRwanVma3ZnIn0.-2IBbm2m-ZnEv-EjvH7WAA'
 }).addTo(mymap);
-L.tileLayer('http://127.0.0.1:8000/map_overlay/1/{z}/{x}/{y}.png', {
+L.tileLayer('https://tracks.lamastravels.in.ua/map_overlay/1/{z}/{x}/{y}.png', {
 	maxZoom: 18,
     tileSize: 512,
     zoomOffset: -1,

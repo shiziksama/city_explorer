@@ -30,7 +30,7 @@ class SendResultsJob implements ShouldQueue
      */
     public function handle()
     {
-        $points=\App\Models\Curpoint::where('mid',$this->mid)->orderBy('timestamp','asc')->get();
+        $points=\App\Models\Curpoint::where('mid',$this->mid)->where('horizontal_accuracy','<',100)->orderBy('timestamp','asc')->get();
 		$distance=0;
 		$time=$points->max('timestamp')-$points->min('timestamp');
 		foreach($points as $k=>$point){

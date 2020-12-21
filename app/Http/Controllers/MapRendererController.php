@@ -119,19 +119,40 @@ class MapRendererController extends Controller
 		$draw = new \ImagickDraw();
 		//$draw->setFillAlpha(0);
 		$draw->setStrokeColor(new \ImagickPixel('rgba(255, 0, 0, 0.5)'));
-		$draw->setStrokeWidth(20);
+		if($zoom>=14){
+			$draw->setStrokeWidth(20);
+		}elseif($zoom>=13){
+			$draw->setStrokeWidth(15);
+		}elseif($zoom>=11){
+			$draw->setStrokeWidth(5);
+		}else{
+			$draw->setStrokeWidth(1);
+		}
+		
 		$draw->setStrokeLineCap(\Imagick::LINECAP_BUTT);// КОнец линии делает квадратным, потому что другой конец все портит
 		$draw->setStrokeLineJoin(\Imagick::LINEJOIN_ROUND);// склейку в полилиниях деляем скругленной по фану.
 		$draw->setFillColor(new \ImagickPixel('transparent'));
 		
 		//$lines = array_chunk($lines[4], ceil(count($lines[4]) / 3));
-		
-		foreach($lines as $k=>$line){
-			$draw->polyline (array_merge($line,array_reverse($line)));// линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
-			//break;
+		if($lines->isNotEmpty()){
+			foreach($lines as $k=>$line){
+				$draw->polyline (array_merge($line,array_reverse($line)));// линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
+				//break;
+			}
+			$map->drawImage($draw);
+			$imagefile=$map->getImageBlob();
+		}else{
+			$imagefile=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAgAAAAIAAQMAAADOtka5AAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAADZJREFUeNrtwQEBAAAAgqD+r26IwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4g6CAAABAfU3XgAAAABJRU5ErkJggg==');
 		}
-		$map->drawImage($draw);
-		return response($map->getImageBlob())->header('Content-type','image/png');
+			
+		$file_path=base_path('map_overlay/'.$uid.'/'.$zoom.'/'.$x.'/'.$y.'.png');
+		$dirname=pathinfo($file_path,PATHINFO_DIRNAME);
+		if(!is_dir($dirname)){
+			mkdir($dirname,0755,true);
+		}
+		//var_dump('ss');
+		file_put_contents($file_path,$imagefile);
+		return response($imagefile)->header('Content-type','image/png');
 		return $map->getImageBlob();
 		//var_dump($lines);
 		//var_dump('some');

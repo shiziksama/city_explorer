@@ -11,23 +11,25 @@ class TrackController extends Controller
 		$tracks=\App\Models\Track::where('uid',$user->id)->get();
 		
 		
-		//$tracks=collect([]);
-		/*
+		$tracks=collect([]);
+		
 		$track=new \App\Models\Track();
 		
-		$trackpoints=\App\Models\Curpoint::orderBy('timestamp','asc')->where('uid',$user->id)->get();
+		$trackpoints=\App\Models\Curpoint::orderBy('timestamp','asc')->where('mid',67)
+		->where('horizontal_accuracy','<',100)
+		->get();
 		$wkt=$trackpoints->map(function($item){
 			return $item->lat.' '.$item->lng;
 		})->implode(',');
 		if(!empty($wkt)){
-		$wkt='LINESTRING('.$wkt.')';
-		$geometry=resolve('geometry');
-		$w=$geometry->parseWkt($wkt);
-		$track->track_original=$w->toWkb();
-		$track->track_simple=$w->toWkb();
-		$tracks->push($track);
+			$wkt='LINESTRING('.$wkt.')';
+			$geometry=resolve('geometry');
+			$w=$geometry->parseWkt($wkt);
+			$track->track_original=$w->toWkb();
+			$track->track_simple=$w->toWkb();
+			$tracks->push($track);
 		}
-		*/
+		
 		
 		
 		return view('track_area',['tracks'=>$tracks]);
