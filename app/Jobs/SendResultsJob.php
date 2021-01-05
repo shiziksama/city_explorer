@@ -22,7 +22,13 @@ class SendResultsJob implements ShouldQueue
     {
         $this->mid=$mid;
     }
-
+	public function sum($items){
+		return [
+			'distance'=>array_sum(array_column($items, 'distance')),
+			'time'=>array_sum(array_column($items, 'time')),
+			'speed'=>round(array_sum(array_column($items, 'distance'))/array_sum(array_column($items, 'time'))*3.6,2),
+		];
+	}
     /**
      * Execute the job.
      *
@@ -32,13 +38,45 @@ class SendResultsJob implements ShouldQueue
     {
         $points=\App\Models\Curpoint::where('mid',$this->mid)->where('horizontal_accuracy','<',100)->orderBy('timestamp','asc')->get();
 		$distance=0;
-		$time=$points->max('timestamp')-$points->min('timestamp');
+		//var_dump($points->toArray());
+		
+		$time=0;$points->max('timestamp')-$points->min('timestamp');
+		$new_points=[];
+		foreach($points as $k=>$point){
+			if($k==0)continue;
+			$new_point=[];
+			$new_point['distance']=$this->distance($point->lat,$point->lng,$points[$k-1]->lat,$points[$k-1]->lng);
+			$new_point['time']=$point->timestamp-$points[$k-1]->timestamp;
+			$new_point['speed']=round($new_point['distance']/$new_point['time']*3.6,2);
+			$new_points[]=$new_point;
+		}
+		$jumps=[];
+		$stops=[];
+		$walking=[];
+		foreach($new_points as $point){
+			if($point['distance']>=1000||$point['time']>300){
+				$jumps[]=$point;
+			}elseif($point['speed']<0.2){ 
+				$stops[]=$point;
+			}else{
+				$walking[]=$point;
+			}
+		}
+		$walking=($this->sum($walking));
+		$jumps=($this->sum($jumps));
+		$stops=($this->sum($stops));
+		//var_dump($new_points);
+		/*
 		foreach($points as $k=>$point){
 			if($k==0)continue;
 			$distance+=$this->distance($point->lat,$point->lng,$points[$k-1]->lat,$points[$k-1]->lng);
-		}
-		//$smessage=['chat_id'=>$tmessage->user->telegram_id];
-		$smessage=['text'=>'ДИСТАНЦИЯ '.$distance.' Метров. Время.'.$time.' секунд'];
+		}*/
+		$smessage=[];
+		$smessage['text']=(string)view('messages.track_results',['walking'=>$walking,'jumps'=>$jumps,'stops'=>$stops]);
+		//$smessage=['text'=>'ДИСТАНЦИЯ '.$distance.' Метров. Время.'.$time];
+		
+		//var_dump($smessage);
+		//return;
 		\App\Jobs\SendTmessageJob::dispatchSync($points->first()->uid,$smessage);
     }
 	public function distance($lat1, $lng1, $lat2, $lng2){

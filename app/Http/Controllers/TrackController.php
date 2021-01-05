@@ -11,7 +11,7 @@ class TrackController extends Controller
 		$tracks=\App\Models\Track::where('uid',$user->id)->get();
 		
 		
-		$tracks=collect([]);
+		//$tracks=collect([]);
 		
 		$track=new \App\Models\Track();
 		

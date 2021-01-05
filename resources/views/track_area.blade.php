@@ -46,11 +46,13 @@ L.tileLayer('https://tracks.lamastravels.in.ua/map_overlay/1/{z}/{x}/{y}.png', {
 	@break;
 @endforeach
 @foreach($tracks as $tr)
+@foreach($tr->get_tracks() as $k=>$line)
 
-var latlngs = {!!$tr->get_jsarr()!!};
-var polyline = L.polyline(latlngs, {color: 'red',opacity:1,weight:1}).addTo(mymap);
+var latlngs{{$tr->id}}_{{$k}} = {!!json_encode($line)!!};
+var polyline{{$tr->id}}_{{$k}} = L.polyline(latlngs{{$tr->id}}_{{$k}}, {color: 'red',opacity:1,weight:1}).addTo(mymap);
 
-bounds.extend(polyline.getBounds());
+bounds.extend(polyline{{$tr->id}}_{{$k}}.getBounds());
+@endforeach
 @endforeach
 
 mymap.fitBounds(bounds);

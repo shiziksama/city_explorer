@@ -31,11 +31,14 @@ class MapRendererController extends Controller
 	}
 	public function get_tracks($tracks,$lat_from,$lat_to,$lng_from,$lng_to){
 		$new_tracks=collect([]);
+		$tracks=array_values($tracks);
+		//var_dump($tracks);
 		foreach($tracks as $track){
 			$points_numbers=[];
 			foreach($track as $k=>$point){
 				$points_numbers[$k]=$this->computeOutCode($point,$lat_from,$lat_to,$lng_from,$lng_to);
 			}
+			//var_dump($point)
 			$new_track=collect([]);
 			//var_dump($points_numbers);
 			foreach($points_numbers as $k=>$number){
@@ -66,15 +69,17 @@ class MapRendererController extends Controller
 				$new_tracks->push($new_track);
 			}
 			//var_dump($new_tracks);
-			return $new_tracks;
+			//var_dump($new_tracks);
+			
 			//var_dump($points_numbers);
 		}
+		return $new_tracks;
 	}
     public function user_overlay($uid,$zoom,$x,$y){
-		$tracks = \Cache::remember('tracks'.$uid, 3600, function () {
-			return \App\Models\Track::where('uid',1)->get();
-		});
+		$tracks = \App\Models\Track::where('uid',1)->get();
 		//$tracks=\App\Models\Track::where('uid',$uid)->get();
+		//$tracks = collect([\App\Models\Track::find(21)]);
+	
 		$geo=resolve('geometry');
 		$lines=collect([]);
 		$items_count=pow(2,$zoom);
@@ -90,12 +95,13 @@ class MapRendererController extends Controller
 		//var_dump($lat_from,$lat_to);
 		$super_tracks=collect([]);
 		foreach($tracks as $k=>$track){
-			$line=$geo->parseWkb($track->track_simple)->toArray()['coordinates'];
-			$result_tracks=$this->get_tracks([$line],$lat_from,$lat_to,$lng_from,$lng_to);
+			//var_dump($track);
+			
+			$lines=$track->get_tracks();
+			//var_dump($lines);
+			$result_tracks=$this->get_tracks($lines,$lat_from,$lat_to,$lng_from,$lng_to);
 			//var_dump($result_tracks);
 			$super_tracks=$super_tracks->merge($result_tracks);
-			//var_dump($result_tracks->toArray());
-			//break;
 		}
 		//var_dump($super_tracks);
 		$lines=$super_tracks->map(function($item)use($lng_from,$lat_from,$lng_to,$lat_to){
