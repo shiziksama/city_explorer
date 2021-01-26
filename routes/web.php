@@ -23,6 +23,8 @@ Route::get('/tracks/{id}',[TrackController::class,'singletrack']);
 Route::get('/simplificator',[SimplificationController::class,'get']);
 
 Route::get('/map_overlay/{uid}/{z}/{x}/{y}.png',[MapRendererController::class,'user_overlay']);
+Route::get('/lb_overlay/{z}/{x}/{y}.png',[MapRendererController::class,'longboard_overlay']);
+Route::get('/lb_map/{z}/{x}/{y}.png',[MapRendererController::class,'longboard_map']);
 
 
 //https://api.telegram.org/bot1400511618:AAFhsV1xuUOfwPSzOkAmqntVgLcu63WZv80/setWebhook?url=https://tracks.lamastravels.in.ua/telegramwebhook

@@ -15,7 +15,7 @@ class TrackController extends Controller
 		
 		$track=new \App\Models\Track();
 		
-		$trackpoints=\App\Models\Curpoint::orderBy('timestamp','asc')->where('mid',67)
+		$trackpoints=\App\Models\Curpoint::orderBy('timestamp','asc')
 		->where('horizontal_accuracy','<',100)
 		->get();
 		$wkt=$trackpoints->map(function($item){
@@ -32,7 +32,7 @@ class TrackController extends Controller
 		
 		
 		
-		return view('track_area',['tracks'=>$tracks]);
+		return view('track_area',['tracks'=>$tracks,'user'=>$user]);
 	}
 	public function singletrack($id){
 		$track=\App\Models\Track::findOrFail($id);

@@ -60,12 +60,12 @@ class Points2Track extends Command
 		$min_timestamp=$curpoints->min('timestamp');
 		$l_timestamp=$min_timestamp;
 		$curpoints=$curpoints->filter(function($point){
-			return $point->horizontal_accuracy<200;
+			return $point->horizontal_accuracy<1000;
 		});
 		$curpoints->transform(function($point)use(&$l_timestamp){
 			$point->timefrom=$point->timestamp-$l_timestamp;
 			$l_timestamp=$point->timestamp;
-			if($point->horizontal_accuracy>200){
+			if($point->horizontal_accuracy>1000){
 				var_dump('wrong accyray');
 				die();
 			}

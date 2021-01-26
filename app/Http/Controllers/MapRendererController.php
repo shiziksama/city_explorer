@@ -75,8 +75,186 @@ class MapRendererController extends Controller
 		}
 		return $new_tracks;
 	}
+	public function get_overpass($data,$bbox){
+		$url = 'http://overpass-api.de/api/interpreter';
+		$data=str_replace('{{bbox}}',$bbox,$data);
+		//var_dump($data);
+		$data=['data'=>$data];
+
+		// use key 'http' even if you send the request to https://...
+		$options = array(
+			'http' => array(
+				'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+				'method'  => 'POST',
+				'content' => http_build_query($data)
+			)
+		);
+		$context  = stream_context_create($options);
+		$result = json_decode(file_get_contents($url, false, $context),true);
+		return $result;
+	}
+	public function elements_to_lines($elements){
+		$lines=[];
+		$points=[];
+		$pre_lines=[];
+		foreach($elements as $el){
+			if($el['type']=='way'){
+				$pre_lines[]=$el['nodes'];
+			}elseif($el['type']=='node'){
+				$points[$el['id']]=['lat'=>$el['lat'],'lng'=>$el['lon']];
+			}
+		}
+		foreach($pre_lines as $pre_line){
+			$line=[];
+			foreach($pre_line as $pt){
+				$line[]=$points[$pt];
+			}
+			$lines[]=$line;
+		}
+		return $lines;
+		var_dump($lines);
+		
+	}
+	public function longboard_map($zoom,$x,$y){
+		$file_path=base_path('lb_overlay/'.$zoom.'/'.$x.'/'.$y.'.png');
+		if(!file_exists($file_path)){
+			$s=file_get_contents('https://tracks.lamastravels.in.ua/lb_overlay/'.$zoom.'/'.$x.'/'.$y.'.png');//пробуем генерировать оверлей
+			return '';
+		}
+		$osm=file_get_contents('https://a.tile.openstreetmap.org/'.$zoom.'/'.$x.'/'.$y.'.png');
+		$overlay=file_get_contents($file_path);
+		$osmI=new \Imagick();
+		$osmI->readImageBlob($osm);
+		$osmI->resizeImage(512,512,\imagick::FILTER_POINT,1);
+		$overlayI=new \Imagick();
+		$overlayI->readImageBlob($overlay);
+		$osmI->compositeImage($overlayI,\imagick::COMPOSITE_DEFAULT,0,0);
+		$imagefile=$osmI->getImageBlob();
+		return response($imagefile)->header('Content-type','image/png');
+var_dump('some')		;
+	}
+	public function longboard_overlay($zoom,$x,$y){
+		if($zoom<10) return'';
+		$items_count=pow(2,$zoom);
+		$lng_deg_per_item=360/$items_count;
+		$lng_from=-180+$x*$lng_deg_per_item;
+		$lng_to=-180+($x+1)*$lng_deg_per_item;
+		
+		$lat_deg_per_item=(85.0511*2)/$items_count;
+		$lat_to=rad2deg(atan(sinh(pi() * (1 - 2 * $y / $items_count))));
+		$lat_from=rad2deg(atan(sinh(pi() * (1 - 2 * ($y+1) / $items_count))));
+		$bad_roads='
+			way["highway"="construction"]({{bbox}});
+			way["highway"="platform"]({{bbox}});
+			way["highway"="steps"]({{bbox}});
+			way["surface"="dirt"]({{bbox}});
+			way["surface"="unpaved"]({{bbox}});
+			way["surface"="gravel"]({{bbox}});
+			way["surface"="grass"]({{bbox}});
+			way["surface"="ground"]({{bbox}});
+			way["area"="yes"]({{bbox}});
+			way["access"="private"]({{bbox}});
+			way["access"="no"]({{bbox}});
+			way["tracktype"="grade2"]({{bbox}});
+			way["tracktype"="grade3"]({{bbox}});
+			way["tracktype"="grade4"]({{bbox}});
+			way["tracktype"="grade5"]({{bbox}});
+			way["smoothness"="bad"]({{bbox}});
+		';
+		$great_roads='
+			way["surface"="asphalt"]["bicycle"="designated"]({{bbox}});
+			way["surface"="asphalt"]["highway"="cycleway"]({{bbox}});
+			way["bicycle"="designated"]["tracktype"="grade1"]({{bbox}});
+			way["highway"="cycleway"]["tracktype"="grade1"]({{bbox}});
+			way["bicycle"="yes"]["surface"="asphalt"]({{bbox}});
+			way["bicycle"="yes"]["tracktype"="grade1"]({{bbox}});
+		';
+		$normal_roads='
+		';
+		$overpass_text='
+			[out:json][timeout:600];
+			(
+			  ('.$great_roads.');
+			  -('.$bad_roads.');
+			);
+			out body;
+			>;
+			out skel qt;
+';
+		$result=$this->get_overpass($overpass_text,$lat_from.','.$lng_from.','.$lat_to.','.$lng_to);
+		file_put_contents(base_path('lb_json/great.'.$zoom.'.'.$x.'.'.$y.'.json'),json_encode($result));
+		//$tags=[];
+		//$this->get_tags($result['elements']);
+		
+		$lines=$this->elements_to_lines($result['elements']);
+		$great_lines=[];
+		foreach($lines as $item){
+			$item=array_map(function($item)use($lng_from,$lat_from,$lng_to,$lat_to){
+				//var_dump($item);
+				$l['y']=512-round(($item['lat']-$lat_from)*512/($lat_to-$lat_from));
+				$l['x']=round(($item['lng']-$lng_from)*512/($lng_to-$lng_from));
+				return $l;
+			},$item);
+			$great_lines[]=$item;
+		}
+		
+		
+		//die();
+		$map = new \Imagick();
+		$map->newImage(512, 512,new \ImagickPixel('transparent'));
+		//$map->setBackgroundColor();
+		$map->setImageFormat("png");
+		$draw = new \ImagickDraw();
+		//$draw->setFillAlpha(0);
+		$draw->setStrokeColor(new \ImagickPixel('rgba(0, 255, 0, 1)'));
+		/*
+		if($zoom>=14){
+			$draw->setStrokeWidth(20);
+		}elseif($zoom>=13){
+			$draw->setStrokeWidth(15);
+		}elseif($zoom>=11){
+			
+		*/
+			$draw->setStrokeWidth(5);
+		/*
+		}else{
+			$draw->setStrokeWidth(1);
+		}
+		*/
+		
+		$draw->setStrokeLineCap(\Imagick::LINECAP_BUTT);// КОнец линии делает квадратным, потому что другой конец все портит
+		$draw->setStrokeLineJoin(\Imagick::LINEJOIN_ROUND);// склейку в полилиниях деляем скругленной по фану.
+		$draw->setFillColor(new \ImagickPixel('transparent'));
+		foreach($great_lines as $line){
+			$draw->polyline (array_merge($line,array_reverse($line)));// линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
+		}
+
+		$map->drawImage($draw);
+		$imagefile=$map->getImageBlob();
+
+		//$lines = array_chunk($lines[4], ceil(count($lines[4]) / 3));
+		if(count($great_lines)!=0){
+			$imagefile=$map->getImageBlob();
+		}else{
+			$imagefile='';
+			$imagefile=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAgAAAAIAAQMAAADOtka5AAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAADZJREFUeNrtwQEBAAAAgqD+r26IwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4g6CAAABAfU3XgAAAABJRU5ErkJggg==');
+		}
+			
+		$file_path=base_path('lb_overlay/'.$zoom.'/'.$x.'/'.$y.'.png');
+		$dirname=pathinfo($file_path,PATHINFO_DIRNAME);
+		if(!is_dir($dirname)){
+			mkdir($dirname,0755,true);
+		}
+		file_put_contents($file_path,$imagefile);
+		return response($imagefile)->header('Content-type','image/png');
+		
+		
+	}
     public function user_overlay($uid,$zoom,$x,$y){
-		$tracks = \App\Models\Track::where('uid',1)->get();
+		
+		//$tracks = \App\Models\Track::where('uid',1)->get();
+		$user=\App\Models\User::findOrFail($uid);
+		
 		//$tracks=\App\Models\Track::where('uid',$uid)->get();
 		//$tracks = collect([\App\Models\Track::find(21)]);
 	
@@ -91,6 +269,7 @@ class MapRendererController extends Controller
 		$lat_deg_per_item=(85.0511*2)/$items_count;
 		$lat_to=rad2deg(atan(sinh(pi() * (1 - 2 * $y / $items_count))));
 		$lat_from=rad2deg(atan(sinh(pi() * (1 - 2 * ($y+1) / $items_count))));
+		$tracks = $user->getTracks($lat_from,$lng_from,$lng_from,$lng_to);
 		//var_dump($lng_from,$lng_to);
 		//var_dump($lat_from,$lat_to);
 		$super_tracks=collect([]);
