@@ -77,15 +77,19 @@ class OsmApi extends Model
 		return (array_map('array_reverse',$content['geometry']['coordinates']));
 	}
 	public static function route($points_orig){
-		$points=collect($points_orig)->map(function($item){
+		if(count($points_orig)==1){
+			return $points_orig;
+		}
+		$points=collect($points_orig)->slice(0,500)->map(function($item){
 			//var_dump($item);
 			return implode(',',$item);
 		})->implode(';');
+		$points_after=collect($points_orig)->slice(500)->values()->toArray();
+		//var_dump($points_orig);
 		$url='http://localhost:5000/route/v1/walking/'.$points.'?geometries=geojson&overview=simplified';
 		//var_dump($url);
 		$result=json_decode(self::getUrl($url),true)['routes'][0]['geometry']['coordinates'];	
+		$result=array_merge($result,$points_after);
 		return $result;
-		var_dump($result);
-		die();
 	}
 }
