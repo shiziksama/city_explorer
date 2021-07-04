@@ -116,139 +116,23 @@ class MapRendererController extends Controller
 		
 	}
 	public function longboard_map($zoom,$x,$y){
-		$file_path=base_path('lb_overlay/'.$zoom.'/'.$x.'/'.$y.'.png');
-		if(!file_exists($file_path)){
-			$s=file_get_contents('https://tracks.lamastravels.in.ua/lb_overlay/'.$zoom.'/'.$x.'/'.$y.'.png');//пробуем генерировать оверлей
-			return '';
+		if(file_exists(base_path('lb_map/'.$zoom.'/'.$x.'/'.$y.'.png'))){
+			return response(file_get_contents(base_path('lb_map/'.$zoom.'/'.$x.'/'.$y.'.png')))->header('Content-type','image/png');
 		}
-		$osm=file_get_contents('https://a.tile.openstreetmap.org/'.$zoom.'/'.$x.'/'.$y.'.png');
-		$overlay=file_get_contents($file_path);
-		$osmI=new \Imagick();
-		$osmI->readImageBlob($osm);
-		$osmI->resizeImage(512,512,\imagick::FILTER_POINT,1);
-		$overlayI=new \Imagick();
-		$overlayI->readImageBlob($overlay);
-		$osmI->compositeImage($overlayI,\imagick::COMPOSITE_DEFAULT,0,0);
-		$imagefile=$osmI->getImageBlob();
-		return response($imagefile)->header('Content-type','image/png');
-var_dump('some')		;
+		if($zoom>10){
+			\App\Jobs\RenderMap::dispatchNow($zoom,$x,$y);
+		}else{
+			\App\Jobs\RenderMap::dispatch($zoom,$x,$y);
+		}
+		if(file_exists(base_path('lb_map/'.$zoom.'/'.$x.'/'.$y.'.png'))){
+			return response(file_get_contents(base_path('lb_map/'.$zoom.'/'.$x.'/'.$y.'.png')))->header('Content-type','image/png');
+		}
+		
+		return '';
 	}
 	public function longboard_overlay($zoom,$x,$y){
-		if($zoom<10) return'';
-		$items_count=pow(2,$zoom);
-		$lng_deg_per_item=360/$items_count;
-		$lng_from=-180+$x*$lng_deg_per_item;
-		$lng_to=-180+($x+1)*$lng_deg_per_item;
-		
-		$lat_deg_per_item=(85.0511*2)/$items_count;
-		$lat_to=rad2deg(atan(sinh(pi() * (1 - 2 * $y / $items_count))));
-		$lat_from=rad2deg(atan(sinh(pi() * (1 - 2 * ($y+1) / $items_count))));
-		$bad_roads='
-			way["highway"="construction"]({{bbox}});
-			way["highway"="platform"]({{bbox}});
-			way["highway"="steps"]({{bbox}});
-			way["surface"="dirt"]({{bbox}});
-			way["surface"="unpaved"]({{bbox}});
-			way["surface"="gravel"]({{bbox}});
-			way["surface"="grass"]({{bbox}});
-			way["surface"="ground"]({{bbox}});
-			way["area"="yes"]({{bbox}});
-			way["access"="private"]({{bbox}});
-			way["access"="no"]({{bbox}});
-			way["tracktype"="grade2"]({{bbox}});
-			way["tracktype"="grade3"]({{bbox}});
-			way["tracktype"="grade4"]({{bbox}});
-			way["tracktype"="grade5"]({{bbox}});
-			way["smoothness"="bad"]({{bbox}});
-		';
-		$great_roads='
-			way["surface"="asphalt"]["bicycle"="designated"]({{bbox}});
-			way["surface"="asphalt"]["highway"="cycleway"]({{bbox}});
-			way["bicycle"="designated"]["tracktype"="grade1"]({{bbox}});
-			way["highway"="cycleway"]["tracktype"="grade1"]({{bbox}});
-			way["bicycle"="yes"]["surface"="asphalt"]({{bbox}});
-			way["bicycle"="yes"]["tracktype"="grade1"]({{bbox}});
-		';
-		$normal_roads='
-		';
-		$overpass_text='
-			[out:json][timeout:600];
-			(
-			  ('.$great_roads.');
-			  -('.$bad_roads.');
-			);
-			out body;
-			>;
-			out skel qt;
-';
-		$result=$this->get_overpass($overpass_text,$lat_from.','.$lng_from.','.$lat_to.','.$lng_to);
-		file_put_contents(base_path('lb_json/great.'.$zoom.'.'.$x.'.'.$y.'.json'),json_encode($result));
-		//$tags=[];
-		//$this->get_tags($result['elements']);
-		
-		$lines=$this->elements_to_lines($result['elements']);
-		$great_lines=[];
-		foreach($lines as $item){
-			$item=array_map(function($item)use($lng_from,$lat_from,$lng_to,$lat_to){
-				//var_dump($item);
-				$l['y']=512-round(($item['lat']-$lat_from)*512/($lat_to-$lat_from));
-				$l['x']=round(($item['lng']-$lng_from)*512/($lng_to-$lng_from));
-				return $l;
-			},$item);
-			$great_lines[]=$item;
-		}
-		
-		
-		//die();
-		$map = new \Imagick();
-		$map->newImage(512, 512,new \ImagickPixel('transparent'));
-		//$map->setBackgroundColor();
-		$map->setImageFormat("png");
-		$draw = new \ImagickDraw();
-		//$draw->setFillAlpha(0);
-		$draw->setStrokeColor(new \ImagickPixel('rgba(0, 255, 0, 1)'));
-		/*
-		if($zoom>=14){
-			$draw->setStrokeWidth(20);
-		}elseif($zoom>=13){
-			$draw->setStrokeWidth(15);
-		}elseif($zoom>=11){
-			
-		*/
-			$draw->setStrokeWidth(5);
-		/*
-		}else{
-			$draw->setStrokeWidth(1);
-		}
-		*/
-		
-		$draw->setStrokeLineCap(\Imagick::LINECAP_BUTT);// КОнец линии делает квадратным, потому что другой конец все портит
-		$draw->setStrokeLineJoin(\Imagick::LINEJOIN_ROUND);// склейку в полилиниях деляем скругленной по фану.
-		$draw->setFillColor(new \ImagickPixel('transparent'));
-		foreach($great_lines as $line){
-			$draw->polyline (array_merge($line,array_reverse($line)));// линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
-		}
-
-		$map->drawImage($draw);
-		$imagefile=$map->getImageBlob();
-
-		//$lines = array_chunk($lines[4], ceil(count($lines[4]) / 3));
-		if(count($great_lines)!=0){
-			$imagefile=$map->getImageBlob();
-		}else{
-			$imagefile='';
-			$imagefile=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAgAAAAIAAQMAAADOtka5AAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAADZJREFUeNrtwQEBAAAAgqD+r26IwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4g6CAAABAfU3XgAAAABJRU5ErkJggg==');
-		}
-			
-		$file_path=base_path('lb_overlay/'.$zoom.'/'.$x.'/'.$y.'.png');
-		$dirname=pathinfo($file_path,PATHINFO_DIRNAME);
-		if(!is_dir($dirname)){
-			mkdir($dirname,0755,true);
-		}
-		file_put_contents($file_path,$imagefile);
-		return response($imagefile)->header('Content-type','image/png');
-		
-		
+		\App\Jobs\RenderOverlay::dispatch($zoom,$x,$y);
+		return '';
 	}
     public function user_overlay($uid,$zoom,$x,$y){
 		
@@ -341,5 +225,24 @@ var_dump('some')		;
 		return $map->getImageBlob();
 		//var_dump($lines);
 		//var_dump('some');
+	}
+	public function interpreter(){
+		header('Access-Control-Allow-Origin', '*');
+		header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+		//return '[]';
+		//var_dump($_POST);
+		$lbroads=new \App\LBRoads;
+		$result=$lbroads->get_overpass($_POST['data']);
+		$result['elements']=array_map([$lbroads,'add_lbroads_tags'],$result['elements']);
+		//file_put_contents(base_path('1.txt'),json_encode($result,JSON_PRETTY_PRINT));
+		//var_dump($result);
+		//die();
+		
+		$result['elements']=array_filter($result['elements'],function($element){
+			return empty($element['tags']['lbroad']);
+		});
+		$result['elements']=$lbroads->drop_nodes($result['elements']);
+		$result['elements']=array_values($result['elements']);
+		return response()->json($result)->header('Access-Control-Allow-Origin', '*')->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');;
 	}
 }

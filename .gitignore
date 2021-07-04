@@ -10,3 +10,8 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+lb_json/*
+lb_map/*
+lb_overlay/*
+osm/*
+composer.lock
