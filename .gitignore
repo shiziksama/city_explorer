@@ -15,3 +15,4 @@ lb_map/*
 lb_overlay/*
 osm/*
 composer.lock
+*.o5m
