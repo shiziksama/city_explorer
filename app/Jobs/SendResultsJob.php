@@ -23,6 +23,9 @@ class SendResultsJob implements ShouldQueue
         $this->mid=$mid;
     }
 	public function sum($items){
+		if(array_sum(array_column($items, 'time'))==0){
+			return ['distance'=>0,'time'=>0,'speed'=>0];
+		}
 		return [
 			'distance'=>array_sum(array_column($items, 'distance')),
 			'time'=>array_sum(array_column($items, 'time')),
@@ -36,7 +39,9 @@ class SendResultsJob implements ShouldQueue
      */
     public function handle()
     {
+		
         $points=\App\Models\Curpoint::where('mid',$this->mid)->where('horizontal_accuracy','<',100)->orderBy('timestamp','asc')->get();
+		if($points->isEmpty())return;
 		$distance=0;
 		//var_dump($points->toArray());
 		

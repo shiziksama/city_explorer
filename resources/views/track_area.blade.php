@@ -1,7 +1,7 @@
 @extends('index')
 
 @section('head')
-<title>Треки по киеву</title>
+<title>Треки</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
    integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
    crossorigin=""/>
@@ -32,30 +32,36 @@ L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}@2x.png?apikey=cdee
     zoomOffset: -1,
     //accessToken: 'pk.eyJ1Ijoic2hpemlrc2FtYSIsImEiOiJja2I2bWNsbm0wMDJlMnFvYmRwanVma3ZnIn0.-2IBbm2m-ZnEv-EjvH7WAA'
 }).addTo(mymap);
-//L.tileLayer('https://tracks.lamastravels.in.ua/map_overlay/{{$user->id}}/{z}/{x}/{y}.png', {
-L.tileLayer('https://tracks.lamastravels.in.ua/lb_overlay/{z}/{x}/{y}.png', {
+
+L.tileLayer('https://tracks.lamastravels.in.ua/map_overlay/{{$user->id}}/{z}/{x}/{y}.png', {
 	maxZoom: 18,
     tileSize: 512,
     zoomOffset: -1,
 }).addTo(mymap);
 
-@foreach($tracks as $tr)
-	var corner1 = L.latLng({!!$tr->getpoint()!!}),
-	corner2 = L.latLng({!!$tr->getpoint()!!}),
-	bounds = L.latLngBounds(corner1, corner2);
-	console.log(bounds);
-	@break;
-@endforeach
+@if($tracks->count()==0)
+var corner1 = L.latLng(50.4898,30.5394),corner2 = L.latLng(50.4366,30.4322),	bounds = L.latLngBounds(corner1, corner2);
+@else
+	@foreach($tracks as $tr)
+		var corner1 = L.latLng({!!$tr->getpoint()!!}),
+		corner2 = L.latLng({!!$tr->getpoint()!!}),
+		bounds = L.latLngBounds(corner1, corner2);
+		console.log(bounds);
+		@break;
+	@endforeach
+@endif
 @foreach($tracks as $tr)
 @foreach($tr->get_tracks() as $k=>$line)
 
 var latlngs{{$tr->id}}_{{$k}} = {!!json_encode($line)!!};
-var polyline{{$tr->id}}_{{$k}} = L.polyline(latlngs{{$tr->id}}_{{$k}}, {color: 'red',opacity:1,weight:1}).addTo(mymap);
+var polyline{{$tr->id}}_{{$k}} = L.polyline(latlngs{{$tr->id}}_{{$k}}, {color: 'blue',opacity:1,weight:10}).addTo(mymap);
 
 bounds.extend(polyline{{$tr->id}}_{{$k}}.getBounds());
 @endforeach
 @endforeach
 
+
+	//console.log(bounds);
 mymap.fitBounds(bounds);
 
 </script>

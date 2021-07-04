@@ -39,7 +39,7 @@ class SimplificateTrack extends Command
     public function handle()
     {
 		$simplification_version=1;
-		$tracks=\App\Models\Track::where('simplification_version','<',$simplification_version)->get();
+		$tracks=\App\Models\Track::where('simplification_version','<',$simplification_version)->limit(1)->get();
 		$geometry=resolve('geometry');
 		foreach($tracks as $track){
 			$line=new \App\Models\Line();
@@ -67,6 +67,7 @@ class SimplificateTrack extends Command
 			$track->track_simple=$w->toWkb();
 			$track->simplification_version=$simplification_version;
 			$track->save();
+			var_dump('simplificated');
 		}
         return 0;
     }

@@ -12,7 +12,15 @@ class Track extends Model
 
 	public function getpoint(){
 		$geo=resolve('geometry');
-		$points=$geo->parseWkb($this->track_simple)->toArray()['coordinates'];
+		$arr=($geo->parseWkb($this->track_simple)->toArray());
+		if($arr['type']=='MultiLineString'){
+			$points=reset($arr['coordinates']);
+		}else{
+			$points=$arr['coordinates'];
+		}
+
+		//$points=$geo->parseWkb($this->track_simple)->toArray()['coordinates'];
+		
 		return (float)collect($points)->pluck(0)->filter()->min().','.collect($points)->pluck(1)->filter()->min();
 	}
 	public function get_jsarr(){

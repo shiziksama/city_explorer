@@ -1,5 +1,5 @@
 <?php
-
+//https://api.telegram.org/bot1400511618:AAFh0OzXWRYXcp-ztVDtQLz_qH2nadFj9p4/setWebhook?url=https://tracks.lamastravels.in.ua/telegramwebhook
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -21,7 +21,7 @@ class TelegramController extends Controller
 		file_put_contents(base_path('debug.txt'),json_encode($tmessage,JSON_PRETTY_PRINT).'tmessage'.PHP_EOL,FILE_APPEND);
 		
 		$message=json_decode($tmessage->message,true);
-		
+		var_dump('some');
 		file_put_contents(base_path('debug.txt'),json_encode($message,JSON_PRETTY_PRINT).'message'.PHP_EOL,FILE_APPEND);
 		if(!empty($message['location'])){
 			$s=\App\Models\Curpoint::create([
@@ -43,7 +43,8 @@ class TelegramController extends Controller
 		if(false){
 			$smessage=['chat_id'=>$tmessage->user->telegram_id];
 			$smessage['text']='sometext';
-			$q= file_get_contents('https://api.telegram.org/bot1400511618:AAFhsV1xuUOfwPSzOkAmqntVgLcu63WZv80/sendMessage?' . http_build_query($smessage));
+			//$q= file_get_contents('https://api.telegram.org/bot1400511618:AAFhsV1xuUOfwPSzOkAmqntVgLcu63WZv80/sendMessage?' . http_build_query($smessage));
+			$q= file_get_contents('https://api.telegram.org/bot1400511618:AAFh0OzXWRYXcp-ztVDtQLz_qH2nadFj9p4/sendMessage?' . http_build_query($smessage));
 		}
 		
 	}

@@ -8,15 +8,16 @@ class TrackController extends Controller
 {
     public function mymap($slug){
 		$user=\App\Models\User::where('slug',$slug)->firstOrFail();
-		$tracks=\App\Models\Track::where('uid',$user->id)->get();
+		//$tracks=\App\Models\Track::where('uid',$user->id)->get();
 		
 		
-		//$tracks=collect([]);
+		$tracks=collect([]);
 		
 		$track=new \App\Models\Track();
 		
 		$trackpoints=\App\Models\Curpoint::orderBy('timestamp','asc')
-		->where('horizontal_accuracy','<',100)
+		->where('horizontal_accuracy','<',500)
+		->where('mid',115)
 		->get();
 		$wkt=$trackpoints->map(function($item){
 			return $item->lat.' '.$item->lng;
@@ -35,8 +36,12 @@ class TrackController extends Controller
 		return view('track_area',['tracks'=>$tracks,'user'=>$user]);
 	}
 	public function singletrack($id){
+		//return view('track_area');
 		$track=\App\Models\Track::findOrFail($id);
 		$tracks=collect([$track]);
-		return view('track_area',['tracks'=>$tracks]);
+		$user=\App\Models\User::where('slug','shiziksama')->firstOrFail();
+		//$next=\App\Models\Track::where('id','>',$track->id)->orderBy('id','asc')->first();
+		//return view('track_area',['tracks'=>$tracks,'user'=>$user,'next'=>$next]);
+		return view('track_area',['tracks'=>$tracks,'user'=>$user]);
 	}
 }
