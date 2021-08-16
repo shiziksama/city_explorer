@@ -16,15 +16,12 @@ use App\Http\Controllers\MapRendererController;
 |
 */
 Route::any('/telegramwebhook',[TelegramController::class,'webhook']);
-Route::any('/interpreter',[MapRendererController::class,'interpreter']);
 Route::get('/{userslug}',[TrackController::class,'mymap']);
 Route::get('/tracks/{id}',[TrackController::class,'singletrack']);
 
 Route::get('/simplificator',[SimplificationController::class,'get']);
 
 Route::get('/map_overlay/{uid}/{z}/{x}/{y}.png',[MapRendererController::class,'user_overlay']);
-Route::get('/lb_overlay/{z}/{x}/{y}.png',[MapRendererController::class,'longboard_overlay']);
-Route::get('/lb_map/{z}/{x}/{y}.png',[MapRendererController::class,'longboard_map']);
 
 
 

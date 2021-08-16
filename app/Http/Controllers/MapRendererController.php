@@ -7,10 +7,6 @@ use Illuminate\Http\Request;
 class MapRendererController extends Controller
 {
 	public function point_between($point,$lat_from,$lat_to,$lng_from,$lng_to){
-		//var_dump($point);
-		//var_dump($point[0]>$lat_from&&$point[0]<$lat_to);
-		//var_dump($point[1]>$lng_from&&$point[1]<$lng_to);
-		
 		return $point[0]>$lat_from&&$point[0]<$lat_to&&$point[1]>$lng_from&&$point[1]<$lng_to;
 	}
 	public function computeOutCode($point,$lat_from,$lat_to,$lng_from,$lng_to){
@@ -75,65 +71,7 @@ class MapRendererController extends Controller
 		}
 		return $new_tracks;
 	}
-	public function get_overpass($data,$bbox){
-		$url = 'http://overpass-api.de/api/interpreter';
-		$data=str_replace('{{bbox}}',$bbox,$data);
-		//var_dump($data);
-		$data=['data'=>$data];
 
-		// use key 'http' even if you send the request to https://...
-		$options = array(
-			'http' => array(
-				'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-				'method'  => 'POST',
-				'content' => http_build_query($data)
-			)
-		);
-		$context  = stream_context_create($options);
-		$result = json_decode(file_get_contents($url, false, $context),true);
-		return $result;
-	}
-	public function elements_to_lines($elements){
-		$lines=[];
-		$points=[];
-		$pre_lines=[];
-		foreach($elements as $el){
-			if($el['type']=='way'){
-				$pre_lines[]=$el['nodes'];
-			}elseif($el['type']=='node'){
-				$points[$el['id']]=['lat'=>$el['lat'],'lng'=>$el['lon']];
-			}
-		}
-		foreach($pre_lines as $pre_line){
-			$line=[];
-			foreach($pre_line as $pt){
-				$line[]=$points[$pt];
-			}
-			$lines[]=$line;
-		}
-		return $lines;
-		var_dump($lines);
-		
-	}
-	public function longboard_map($zoom,$x,$y){
-		if(file_exists(base_path('lb_map/'.$zoom.'/'.$x.'/'.$y.'.png'))){
-			return response(file_get_contents(base_path('lb_map/'.$zoom.'/'.$x.'/'.$y.'.png')))->header('Content-type','image/png');
-		}
-		if($zoom>10){
-			\App\Jobs\RenderMap::dispatchNow($zoom,$x,$y);
-		}else{
-			\App\Jobs\RenderMap::dispatch($zoom,$x,$y);
-		}
-		if(file_exists(base_path('lb_map/'.$zoom.'/'.$x.'/'.$y.'.png'))){
-			return response(file_get_contents(base_path('lb_map/'.$zoom.'/'.$x.'/'.$y.'.png')))->header('Content-type','image/png');
-		}
-		
-		return '';
-	}
-	public function longboard_overlay($zoom,$x,$y){
-		\App\Jobs\RenderOverlay::dispatch($zoom,$x,$y);
-		return '';
-	}
     public function user_overlay($uid,$zoom,$x,$y){
 		
 		//$tracks = \App\Models\Track::where('uid',1)->get();
@@ -226,23 +164,5 @@ class MapRendererController extends Controller
 		//var_dump($lines);
 		//var_dump('some');
 	}
-	public function interpreter(){
-		header('Access-Control-Allow-Origin', '*');
-		header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-		//return '[]';
-		//var_dump($_POST);
-		$lbroads=new \App\LBRoads;
-		$result=$lbroads->get_overpass($_POST['data']);
-		$result['elements']=array_map([$lbroads,'add_lbroads_tags'],$result['elements']);
-		//file_put_contents(base_path('1.txt'),json_encode($result,JSON_PRETTY_PRINT));
-		//var_dump($result);
-		//die();
-		
-		$result['elements']=array_filter($result['elements'],function($element){
-			return empty($element['tags']['lbroad']);
-		});
-		$result['elements']=$lbroads->drop_nodes($result['elements']);
-		$result['elements']=array_values($result['elements']);
-		return response()->json($result)->header('Access-Control-Allow-Origin', '*')->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');;
-	}
+
 }
