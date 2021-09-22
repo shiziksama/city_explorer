@@ -40,8 +40,6 @@ class TrackController extends Controller
 		$track=\App\Models\Track::findOrFail($id);
 		$tracks=collect([$track]);
 		$user=\App\Models\User::where('slug','shiziksama')->firstOrFail();
-		//$next=\App\Models\Track::where('id','>',$track->id)->orderBy('id','asc')->first();
-		//return view('track_area',['tracks'=>$tracks,'user'=>$user,'next'=>$next]);
 		return view('track_area',['tracks'=>$tracks,'user'=>$user]);
 	}
 }

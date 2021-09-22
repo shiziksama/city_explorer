@@ -29,6 +29,16 @@ class Track extends Model
 		$r=($geometry->parseWkb($this->track_simple)->toArray()['coordinates']);
 		return json_encode($r);
 	}
+	public function get_original_tracks(){
+		$geometry=resolve('geometry');
+		$s=$geometry->parseWkb($this->track_original)->toArray();
+		if($s['type']=='LineString'){
+			return [$s['coordinates']];
+		}
+		if($s['type']=='MultiLineString'){
+			return $s['coordinates'];
+		}
+	}
 	public function get_tracks(){
 		$geometry=resolve('geometry');
 		//var_dump($this->id);
