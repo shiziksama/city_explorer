@@ -23,7 +23,22 @@
 @section('content')
 <div id="mapid"></div>
 <script>
-var mymap = L.map('mapid');
+let clat = localStorage.getItem('lat');
+let clng = localStorage.getItem('lng');
+let cz = localStorage.getItem('zoom');
+if(!clat){
+	clat=50.456;
+}
+if(!clng){
+	clng=30.481516;
+}
+if(!cz){
+	cz=6;
+}
+var mymap = L.map('mapid', {
+    center: [clat, clng],
+    zoom: cz
+});
 L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}@2x.png?apikey=cdeea879c575479fbf645def237f4afa', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
     maxZoom: 18,
@@ -66,10 +81,18 @@ bounds.extend(polyline{{$tr->id}}_{{$k}}.getBounds());
 @endforeach
 
 @endforeach
+mymap.addEventListener('moveend',function(ev){
+	localStorage.setItem('lat',mymap.getCenter().lat);
+	localStorage.setItem('lng',mymap.getCenter().lng);
+	//console.log(mymap.getCenter());
+});
 
+mymap.addEventListener('zoomend',function(ev){
+	localStorage.setItem('zoom',mymap.getZoom());
+});
 
 	//console.log(bounds);
-mymap.fitBounds(bounds);
+//mymap.fitBounds(bounds);
 
 </script>
 @endsection

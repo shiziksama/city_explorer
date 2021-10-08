@@ -95,30 +95,13 @@ class MapRendererController extends Controller
 		//var_dump($lng_from,$lng_to);
 		//var_dump($lat_from,$lat_to);
 		$super_tracks=collect([]);
+		
 		foreach($tracks as $k=>$track){
-			//var_dump($track);
-			
 			$lines=$track->get_tracks();
-			//var_dump($lines);
 			$result_tracks=$this->get_tracks($lines,$lat_from,$lat_to,$lng_from,$lng_to);
 			//var_dump($result_tracks);
 			$super_tracks=$super_tracks->merge($result_tracks);
 		}
-		//var_dump($super_tracks);
-		$lines=$super_tracks->map(function($item)use($lng_from,$lat_from,$lng_to,$lat_to){
-			$item=$item->toArray();
-			$item=array_map(function($item)use($lng_from,$lat_from,$lng_to,$lat_to){
-				//var_dump($item);
-				$l['y']=512-round(($item[0]-$lat_from)*512/($lat_to-$lat_from));
-				$l['x']=round(($item[1]-$lng_from)*512/($lng_to-$lng_from));
-				return $l;
-			},$item);
-		//var_dump($item);
-			return $item;
-			
-		});
-		//var_dump($lines);
-		//die();
 		$map = new \Imagick();
 		$map->newImage(512, 512,new \ImagickPixel('transparent'));
 		//$map->setBackgroundColor();
@@ -140,12 +123,20 @@ class MapRendererController extends Controller
 		$draw->setStrokeLineJoin(\Imagick::LINEJOIN_ROUND);// склейку в полилиниях деляем скругленной по фану.
 		$draw->setFillColor(new \ImagickPixel('transparent'));
 		
-		//$lines = array_chunk($lines[4], ceil(count($lines[4]) / 3));
-		if($lines->isNotEmpty()){
-			foreach($lines as $k=>$line){
-				$draw->polyline (array_merge($line,array_reverse($line)));// линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
-				//break;
-			}
+		
+		//var_dump($super_tracks);
+		foreach($super_tracks as $item){
+			$item=$item->toArray();
+			$line=array_map(function($item)use($lng_from,$lat_from,$lng_to,$lat_to){
+				//var_dump($item);
+				$l['y']=512-round(($item[0]-$lat_from)*512/($lat_to-$lat_from));
+				$l['x']=round(($item[1]-$lng_from)*512/($lng_to-$lng_from));
+				return $l;
+			},$item);
+			$draw->polyline (array_merge($line,array_reverse($line)));// линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
+		}		
+		
+		if($super_tracks->isNotEmpty()){
 			$map->drawImage($draw);
 			$imagefile=$map->getImageBlob();
 		}else{
