@@ -19,7 +19,11 @@ use App\Http\Controllers\UsersController;
 
 Route::any('/telegramwebhook',[TelegramController::class,'webhook']);
 
-Route::get('/',[UsersController::class,'mainpage'])->middleware('auth');
+Route::get('/',[UsersController::class,'mainpage']);
+Route::get('/profile',[UsersController::class,'profile'])->middleware('auth');
+
+Route::get('/connect/{provider}',[UsersController::class,'connect'])->middleware('auth');
+
 Route::get('/login',[UsersController::class,'login_page']);
 Route::post('/login',[UsersController::class,'login_page_post']);
 Route::get('/login/code/{code}',[UsersController::class,'login_with_code']);
