@@ -91,32 +91,24 @@ class MapRendererController extends Controller
 		$lat_deg_per_item=(85.0511*2)/$items_count;
 		$lat_to=rad2deg(atan(sinh(pi() * (1 - 2 * $y / $items_count))));
 		$lat_from=rad2deg(atan(sinh(pi() * (1 - 2 * ($y+1) / $items_count))));
-		$tracks = $user->getTracks($lat_from,$lng_from,$lng_from,$lng_to);
-		//var_dump($lng_from,$lng_to);
-		//var_dump($lat_from,$lat_to);
-		$super_tracks=collect([]);
-		
-		foreach($tracks as $k=>$track){
-			$lines=$track->get_tracks();
-			$result_tracks=$this->get_tracks($lines,$lat_from,$lat_to,$lng_from,$lng_to);
-			//var_dump($result_tracks);
-			$super_tracks=$super_tracks->merge($result_tracks);
-		}
+
 		$map = new \Imagick();
 		$map->newImage(512, 512,new \ImagickPixel('transparent'));
 		//$map->setBackgroundColor();
 		$map->setImageFormat("png");
 		$draw = new \ImagickDraw();
 		//$draw->setFillAlpha(0);
-		$draw->setStrokeColor(new \ImagickPixel('rgba(255, 0, 0, 0.5)'));
+		$draw->setStrokeColor(new \ImagickPixel('rgba(255, 0, 0, 0.8)'));
 		if($zoom>=14){
 			$draw->setStrokeWidth(20);
 		}elseif($zoom>=13){
 			$draw->setStrokeWidth(15);
 		}elseif($zoom>=11){
 			$draw->setStrokeWidth(5);
+		}elseif($zoom>=7){
+			$draw->setStrokeWidth(4);
 		}else{
-			$draw->setStrokeWidth(1);
+			$draw->setStrokeWidth(2);
 		}
 		
 		$draw->setStrokeLineCap(\Imagick::LINECAP_BUTT);// КОнец линии делает квадратным, потому что другой конец все портит
@@ -124,19 +116,26 @@ class MapRendererController extends Controller
 		$draw->setFillColor(new \ImagickPixel('transparent'));
 		
 		
-		//var_dump($super_tracks);
-		foreach($super_tracks as $item){
-			$item=$item->toArray();
-			$line=array_map(function($item)use($lng_from,$lat_from,$lng_to,$lat_to){
-				//var_dump($item);
-				$l['y']=512-round(($item[0]-$lat_from)*512/($lat_to-$lat_from));
-				$l['x']=round(($item[1]-$lng_from)*512/($lng_to-$lng_from));
-				return $l;
-			},$item);
-			$draw->polyline (array_merge($line,array_reverse($line)));// линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
-		}		
+		$tracks = $user->getTracks($lat_from,$lng_from,$lng_from,$lng_to);
+		$has_tracks=false;
+		foreach($tracks as $k=>$track){
+			$lines=$track->get_tracks();
+			$result_tracks=$this->get_tracks($lines,$lat_from,$lat_to,$lng_from,$lng_to);
+			foreach($result_tracks as $item){
+				$has_tracks=true;
+				$item=$item->toArray();
+				$line=array_map(function($item)use($lng_from,$lat_from,$lng_to,$lat_to,$items_count,$y){
+					$l['y']=(1 - log(tan(deg2rad($item[0])) + 1 / cos(deg2rad($item[0]))) / pi()) /2 * $items_count;
+					$l['y']-=$y;
+					$l['y']=512*$l['y'];
+					$l['x']=round(($item[1]-$lng_from)*512/($lng_to-$lng_from));
+					return $l;
+				},$item);
+				$draw->polyline(array_merge($line,array_reverse($line)));// линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
+			}
+		}
 		
-		if($super_tracks->isNotEmpty()){
+		if($has_tracks){
 			$map->drawImage($draw);
 			$imagefile=$map->getImageBlob();
 		}else{
@@ -151,7 +150,7 @@ class MapRendererController extends Controller
 		//var_dump('ss');
 		file_put_contents($file_path,$imagefile);
 		return response($imagefile)->header('Content-type','image/png');
-		return $map->getImageBlob();
+		//return $map->getImageBlob();
 		//var_dump($lines);
 		//var_dump('some');
 	}

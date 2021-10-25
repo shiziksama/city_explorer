@@ -39,7 +39,8 @@ var mymap = L.map('mapid', {
     center: [clat, clng],
     zoom: cz
 });
-L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}@2x.png?apikey=cdeea879c575479fbf645def237f4afa', {
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}@2x.png?apikey=cdeea879c575479fbf645def237f4afa', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
     maxZoom: 18,
     //id: 'mapbox/outdoors-v11',

@@ -37,7 +37,7 @@ class RemoveTiles extends Command
      */
     public function handle()
     {
-        $tiles=\DB::table('tiles_to_delete')->orderBy('zoom','desc')->limit(1000)->get();
+        $tiles=\DB::table('tiles_to_delete')->orderBy('zoom','desc')->limit(3000)->get();
 		$tiles_new=[];
 		foreach($tiles as $tile){
 			
@@ -54,5 +54,6 @@ class RemoveTiles extends Command
 			return json_decode($v,true);
 		},$tiles);
 		\DB::table('tiles_to_delete')->insertOrIgnore($tiles);
+		var_dump(\DB::table('tiles_to_delete')->count());
     }
 }
