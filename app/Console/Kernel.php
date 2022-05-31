@@ -24,6 +24,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+		$schedule->command('trackget:schedule')->hourly();
+		$schedule->command('queue:work --queue=parsers --once')->everyMinute();
+		$schedule->command('queue:work --queue=tiles --once')->everyMinute();
+		$schedule->command('tiles:remove')->everyMinute();
         // $schedule->command('inspire')->hourly();
     }
 
@@ -38,7 +42,7 @@ class Kernel extends ConsoleKernel
 
         require base_path('routes/console.php');
 		
+		//$schedule->command('trackget:schedule')->hourly();
 		
-//		$schedule->command('track:points2track')->everyFiveMinutes();
     }
 }

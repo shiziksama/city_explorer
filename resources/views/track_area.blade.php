@@ -92,6 +92,30 @@ mymap.addEventListener('zoomend',function(ev){
 	localStorage.setItem('zoom',mymap.getZoom());
 });
 
+var locationMarker;
+var locationLine;
+
+function onLocationFound(e) {
+	//var radius = e.accuracy / 2;
+	if(!locationMarker){
+		locationMarker = L.marker(e.latlng).addTo(mymap);
+		locationLine= L.polyline([e.latlng], {color: 'blue',opacity:0.7,weight:8}).addTo(mymap)
+	}else{
+		locationMarker.setLatLng(e.latlng);
+		locationLine.addLatLng(e.latlng);
+	}
+	//var locationCircle = L.circle(e.latlng, radius).addTo(mymap);
+}
+
+function onLocationError(e) {
+	alert(e.message);
+}
+
+mymap.on('locationfound', onLocationFound);
+mymap.on('locationerror', onLocationError);
+
+mymap.locate({watch: true});
+
 	//console.log(bounds);
 //mymap.fitBounds(bounds);
 

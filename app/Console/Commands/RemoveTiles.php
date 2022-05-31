@@ -35,12 +35,10 @@ class RemoveTiles extends Command
      *
      * @return int
      */
-    public function handle()
-    {
-        $tiles=\DB::table('tiles_to_delete')->orderBy('zoom','desc')->limit(3000)->get();
+	public function handleOnce(){
+		$tiles=\DB::table('tiles_to_delete')->orderBy('zoom','desc')->limit(3000)->get();
 		$tiles_new=[];
 		foreach($tiles as $tile){
-			
 			$path=base_path('map_overlay/'.$tile->user_id.'/'.$tile->zoom.'/'.$tile->x.'/'.$tile->y.'.png');
 			if(file_exists($path)){
 				unlink($path);
@@ -54,6 +52,13 @@ class RemoveTiles extends Command
 			return json_decode($v,true);
 		},$tiles);
 		\DB::table('tiles_to_delete')->insertOrIgnore($tiles);
-		var_dump(\DB::table('tiles_to_delete')->count());
+		
+		var_dump('count:'.\DB::table('tiles_to_delete')->count().'.max zoom:'.\DB::table('tiles_to_delete')->max('zoom'));
+	}
+    public function handle()
+    {
+        for($i=16;$i>0;$i--){
+			$this->handleOnce();
+		}
     }
 }

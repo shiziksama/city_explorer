@@ -41,6 +41,7 @@ class ParseFileJob implements ShouldQueue
     public function handle()
     {
 		$user_id=1;//shiziksama
+		var_dump($this->filename);
 		$ext=(pathinfo($this->filename,PATHINFO_EXTENSION));
 		$g=resolve('geometry');
 		if($ext=='kml'){
@@ -52,6 +53,7 @@ class ParseFileJob implements ShouldQueue
 					$arr['coordinates'][$k]=array_map('array_reverse',$arr['coordinates'][$k]);
 				}
 			}else{
+				var_dump($arr['type']);
 				$arr['coordinates']=array_map('array_reverse',$arr['coordinates']);
 			}
 			$w=$g->parseJson(json_encode($arr));

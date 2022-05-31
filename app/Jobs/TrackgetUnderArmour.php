@@ -65,8 +65,9 @@ class TrackgetUnderArmour implements ShouldQueue
 		$url = "https://api.ua.com/v7.1/workout/?".http_build_query($query);
 		curl_setopt($curl, CURLOPT_URL, $url);
 		$response = curl_exec($curl);
-		
+		var_dump($response);	
 		$geometry=resolve('geometry');
+		
 		foreach(json_decode($response,true)['_embedded']['workouts'] as $workout){
 			if(empty($workout['_links']['route']))continue;//не записан трек, просто тренировка
 			//var_dump('activity|'.$workout['_links']['activity_type'][0]['id']);
