@@ -57,6 +57,8 @@ class RemoveTiles extends Command
 	}
     public function handle()
     {
+        $this->handleOnce();
+        return;
         for($i=16;$i>0;$i--){
 			$this->handleOnce();
 		}

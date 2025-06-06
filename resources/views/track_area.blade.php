@@ -21,6 +21,7 @@
 @endsection
 
 @section('content')
+{{--<a href="/tracks/{{$next}}" style="z-index:99999;position:absolute;top:0;right:0;">next track</a>--}}
 <div id="mapid"></div>
 <script>
 let clat = localStorage.getItem('lat');

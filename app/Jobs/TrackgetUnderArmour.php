@@ -30,18 +30,39 @@ class TrackgetUnderArmour implements ShouldQueue
      *
      * @return void
      */
+	public function refreshToken($token){
+		$provider = new \Spacebib\OAuth2\Client\Provider\UnderArmour([
+			'clientId'          => config('services.underarmour.key'),
+			'clientSecret'      => config('services.underarmour.secret'),
+			'redirectUri'       => 'https://tracks.lamastravels.in.ua/connect/underamour',
+			]);
+		$newAccessToken = $provider->getAccessToken('refresh_token', [
+			'refresh_token' => $token->refresh_token,
+		]);
+		$token->access_token=$newAccessToken->getToken();
+		$token->refresh_token=$newAccessToken->getRefreshToken();
+		$token->expires_time=$newAccessToken->getExpires();
+		$token->save();
+		return $token;
+	}
     public function handle()
     {
 		//https://api.mapmyfitness.com/v7.1/workout/?user=184233997&order_by=-start_datetime
         //
+		
+				
 		$token=Token::find($this->token_id);
+		if($token->expires_time<time()){
+			var_dump('refresh');
+			$token=$this->refreshToken($token);
+		}
 		$getter = TrackGetter::firstOrNew([
 			'user_id' => $token->user_id,
 			'service'=>$token->service
 		]);
 		$user_id=($getter->getData('user_id'));
 
-		$headers = array('Authorization: Bearer '.$token->access_token,'Api-Key: '.config('services.underarmour.key'));
+		$headers = array('Authorization: Be	arer '.$token->access_token,'Api-Key: '.config('services.underarmour.key'));
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
@@ -65,7 +86,9 @@ class TrackgetUnderArmour implements ShouldQueue
 		$url = "https://api.ua.com/v7.1/workout/?".http_build_query($query);
 		curl_setopt($curl, CURLOPT_URL, $url);
 		$response = curl_exec($curl);
-		var_dump($response);	
+		if($response=='{}'){
+			return;//empty response - something is wrong
+		}
 		$geometry=resolve('geometry');
 		
 		foreach(json_decode($response,true)['_embedded']['workouts'] as $workout){

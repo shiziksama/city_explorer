@@ -10,6 +10,8 @@
     "require": {
         "php": "^7.3|^8.0",
         "david-r-edgar/rdp": "^0.0.1",
+        "edwin-luijten/oauth2-strava": "^1.4",
+        "emcconville/google-map-polyline-encoding-tool": "^1.3",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",

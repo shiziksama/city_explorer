@@ -35,6 +35,7 @@ class RemoveTilesJob implements ShouldQueue
 		$zoom=18;//maximum zoom
 		$tiles=[];
 		foreach($this->points as $point){
+			if(empty($point['lng'])) continue;
 			$xtile = floor((($point['lng'] + 180) / 360) * pow(2, $zoom));
 			$ytile = floor((1 - log(tan(deg2rad($point['lat'])) + 1 / cos(deg2rad($point['lat']))) / pi()) /2 * pow(2, $zoom));
 			$tiles[]=json_encode(['x'=>$xtile,'y'=>$ytile,'zoom'=>$zoom,'user_id'=>$this->user_id]);

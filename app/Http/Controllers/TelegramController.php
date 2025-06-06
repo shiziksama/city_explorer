@@ -1,12 +1,12 @@
 <?php
-//https://api.telegram.org/bot1400511618:AAFh0OzXWRYXcp-ztVDtQLz_qH2nadFj9p4/setWebhook?url=https://tracks.lamastravels.in.ua/telegramwebhook
+//https://api.telegram.org/bot1400511618:AAGPK3Y__Ry6dRBWc5Z3o8x58Fiy0WpxRk0/setWebhook?url=https://tracks.lamastravels.in.ua/telegramwebhook
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 
 class TelegramController extends Controller{
-	public $bot_token='1400511618:AAFh0OzXWRYXcp-ztVDtQLz_qH2nadFj9p4';
+	public $bot_token='1400511618:AAGPK3Y__Ry6dRBWc5Z3o8x58Fiy0WpxRk0';
 	public function webhook(){
 		file_put_contents(base_path('debug.txt'),'some',FILE_APPEND);
 		$content = file_get_contents("php://input");
@@ -28,7 +28,7 @@ class TelegramController extends Controller{
 			$docs=json_decode(file_get_contents('https://api.telegram.org/bot'.($this->bot_token).'/getFile?file_id='.$message['document']['file_id']),true)['result'];
 			$file=file_get_contents('https://api.telegram.org/file/bot'.($this->bot_token).'/'.$docs['file_path']);
 			Storage::disk('local')->put($message['document']['file_name'], $file);
-			\App\Jobs\ParseFileJob::dispatch($message['document']['file_name']);
+			\App\Jobs\ParseFileJob::dispatch($message['document']['file_name'])->onQueue('parsers');
 			
 		}
 		if(!empty($message['location'])){

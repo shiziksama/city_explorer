@@ -38,8 +38,9 @@ class TrackController extends Controller
 	public function singletrack($id){
 		//return view('track_area');
 		$track=\App\Models\Track::findOrFail($id);
+        $next=\App\Models\Track::where('id','>',$id)->orderBy('id','asc')->first();
 		$tracks=collect([$track]);
 		$user=\App\Models\User::where('slug','shiziksama')->firstOrFail();
-		return view('track_area',['tracks'=>$tracks,'user'=>$user]);
+		return view('track_area',['tracks'=>$tracks,'user'=>$user,'next'=>$next->id??null]);
 	}
 }

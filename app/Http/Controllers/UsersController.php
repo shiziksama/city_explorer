@@ -31,6 +31,24 @@ class UsersController extends Controller{
 	}
 	public function mainpage(){
 		return view('mainpage_guest');
+		
+	}
+	
+	public function getProvider($provider_name){
+		if($provider_name=='underarmour'){
+			return new \Spacebib\OAuth2\Client\Provider\UnderArmour([
+				'clientId'          => config('services.underarmour.key'),
+				'clientSecret'      => config('services.underarmour.secret'),
+				'redirectUri'       => 'https://tracks.lamastravels.in.ua/connect/underarmour',
+				]);
+		}elseif($provider_name=='strava'){
+			return new \League\OAuth2\Client\Provider\Strava([
+				'clientId'     => '100397',
+				'clientSecret' => 'ad541db6d7dee05bcd3eae208aa3762e045f864a',
+				'redirectUri'  => 'https://tracks.lamastravels.in.ua/connect/strava',
+			]);
+		}
+		
 	}
 	public function connect($provider_name){
 		//сделать для разных провайдеров.
@@ -53,7 +71,7 @@ class UsersController extends Controller{
 		//https://developer.underarmour.com/updatekey/
 		
 		
-		$data = ['callback_uri'=> 'https://tracks.lamastravels.in.ua/connect/underamour', 'application_title'=> 'CityExplorer'];
+		$data = ['callback_uri'=> 'https://tracks.lamastravels.in.ua/connect/underarmour', 'application_title'=> 'CityExplorer'];
 		$url = "https://api.ua.com/v7.2/api_client/".config('services.underarmour.key')."/";
 		$headers = array('Authorization: Bearer '.$token,'Api-Key: '.config('services.underarmour.key'));
 		$curl = curl_init();
@@ -78,17 +96,21 @@ class UsersController extends Controller{
 		
 		die();	*/
 		
-
-		$provider = new \Spacebib\OAuth2\Client\Provider\UnderArmour([
-			'clientId'          => config('services.underarmour.key'),
-			'clientSecret'      => config('services.underarmour.secret'),
-			'redirectUri'       => 'https://tracks.lamastravels.in.ua/connect/underamour',
-		]);
+		$provider=$this->getProvider($provider_name);
+		
 		//var_dump(\Session::get('oauth2state'.$provider_name));
 			
 		if (!isset($_GET['code'])) {
 			// If we don't have an authorization code then get one
-			$authUrl = $provider->getAuthorizationUrl();
+			if($provider_name=='strava'){
+				$options = [
+					'scope' => ['activity:read_all'] // array or string; at least 'user:email' is required
+				];
+				$authUrl = $provider->getAuthorizationUrl($options);
+			}else{
+				$authUrl = $provider->getAuthorizationUrl();
+				
+			}
 			var_dump($provider->getState());
 			\Session::put('oauth2state'.$provider_name,$provider->getState());
 			var_dump(\Session::get('oauth2state'.$provider_name));
@@ -97,7 +119,7 @@ class UsersController extends Controller{
 			// Check given state against previously stored one to mitigate CSRF attack
 		} elseif (empty($_GET['state']) || ($_GET['state'] !== \Session::get('oauth2state'.$provider_name))) {
 			//svar_dump(\Session::get('oauth2state'.$provider_name));
-			return redirect('https://tracks.lamastravels.in.ua/connect/underamour');
+			return redirect('https://tracks.lamastravels.in.ua/connect/'.$provider_name);
 		} else {
 
 			// Try to get an access token (using the authorization code grant)
@@ -111,7 +133,9 @@ class UsersController extends Controller{
 			$token_t->refresh_token=$token->getRefreshToken();
 			$token_t->expires_time=$token->getExpires();
 			$token_t->save();
-			\App\Jobs\TrackgetUnderArmour::dispatch($token_t->id)->onQueue('parsers');
+			$string='\App\Jobs\Trackget'.ucfirst($provider_name);
+			$string::dispatch($token_t->id)->onQueue('parsers');
+			//TODO
 			return redirect('/profile');
 		}
 	}

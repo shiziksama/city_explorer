@@ -40,7 +40,8 @@ class TrackgetterSheduler extends Command
     {
 		$tokens=Token::all();
 		foreach($tokens as $token){
-			\App\Jobs\TrackgetUnderArmour::dispatch($token->id)->onQueue('parsers');
+			$string='\App\Jobs\Trackget'.ucfirst($token->service);
+			$string::dispatch($token->id)->onQueue('parsers');
 		}
     }
 }
