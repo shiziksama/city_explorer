@@ -62,8 +62,8 @@ class OsmApi extends Model
 			return implode(',',array_reverse($item));
 		})->implode(';');
 //		$url.='-117.17282,32.71204;-117.17288,32.71225;-117.17293,32.71244;-117.17292,32.71256;-117.17298,32.712603;-117.17314,32.71259;-117.17334,32.71254';
-		$url.='?access_token=pk.eyJ1Ijoic2hpemlrc2FtYSIsImEiOiJja2I2bWNsbm0wMDJlMnFvYmRwanVma3ZnIn0.-2IBbm2m-ZnEv-EjvH7WAA';
-		$url.='&geometries=geojson&tidy=true';
+                $url.='?access_token='.config('services.mapbox.token');
+                $url.='&geometries=geojson&tidy=true';
 		$content=json_decode(self::getUrl($url),true);
 		$content=$content['matchings'];
 		if(count($content)==1){

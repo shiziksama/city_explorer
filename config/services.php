@@ -29,9 +29,23 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
-	'underarmour'=>[
-		'key'=>env('UNDERARMOUR_KEY'),
-		'secret'=>env('UNDERARMOUR_SECRET'),
-	]
+        'underarmour'=>[
+                'key'=>env('UNDERARMOUR_KEY'),
+                'secret'=>env('UNDERARMOUR_SECRET'),
+        ],
+
+        'telegram' => [
+                'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        ],
+
+        'strava' => [
+                'client_id' => env('STRAVA_CLIENT_ID'),
+                'client_secret' => env('STRAVA_CLIENT_SECRET'),
+                'redirect_uri' => env('STRAVA_REDIRECT_URI', 'https://tracks.lamastravels.in.ua/connect/strava'),
+        ],
+
+        'mapbox' => [
+                'token' => env('MAPBOX_ACCESS_TOKEN'),
+        ],
 
 ];

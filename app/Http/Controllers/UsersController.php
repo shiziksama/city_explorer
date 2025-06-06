@@ -41,13 +41,13 @@ class UsersController extends Controller{
 				'clientSecret'      => config('services.underarmour.secret'),
 				'redirectUri'       => 'https://tracks.lamastravels.in.ua/connect/underarmour',
 				]);
-		}elseif($provider_name=='strava'){
-			return new \League\OAuth2\Client\Provider\Strava([
-				'clientId'     => '100397',
-				'clientSecret' => 'ad541db6d7dee05bcd3eae208aa3762e045f864a',
-				'redirectUri'  => 'https://tracks.lamastravels.in.ua/connect/strava',
-			]);
-		}
+                }elseif($provider_name=='strava'){
+                        return new \League\OAuth2\Client\Provider\Strava([
+                                'clientId'     => config('services.strava.client_id'),
+                                'clientSecret' => config('services.strava.client_secret'),
+                                'redirectUri'  => config('services.strava.redirect_uri'),
+                        ]);
+                }
 		
 	}
 	public function connect($provider_name){

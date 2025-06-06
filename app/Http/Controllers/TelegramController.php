@@ -1,12 +1,18 @@
 <?php
-//https://api.telegram.org/bot1400511618:AAGPK3Y__Ry6dRBWc5Z3o8x58Fiy0WpxRk0/setWebhook?url=https://tracks.lamastravels.in.ua/telegramwebhook
+// Example webhook setup URL:
+// https://api.telegram.org/bot<token>/setWebhook?url=https://tracks.lamastravels.in.ua/telegramwebhook
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 
 class TelegramController extends Controller{
-	public $bot_token='1400511618:AAGPK3Y__Ry6dRBWc5Z3o8x58Fiy0WpxRk0';
+        public $bot_token;
+
+        public function __construct()
+        {
+                $this->bot_token = config('services.telegram.bot_token');
+        }
 	public function webhook(){
 		file_put_contents(base_path('debug.txt'),'some',FILE_APPEND);
 		$content = file_get_contents("php://input");
