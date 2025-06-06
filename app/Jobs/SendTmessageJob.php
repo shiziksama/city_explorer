@@ -33,12 +33,13 @@ class SendTmessageJob implements ShouldQueue
      */
     public function handle()
     {
-		
-		$smessage=$this->message;
-		$user=\App\Models\User::find($this->uid);
-		$smessage['chat_id']=$user->telegram_id;
-		//$smessage['text']='sometext';
-		$q= file_get_contents('https://api.telegram.org/bot1400511618:AAFh0OzXWRYXcp-ztVDtQLz_qH2nadFj9p4/sendMessage?' . http_build_query($smessage));
+
+                $smessage=$this->message;
+                $user=\App\Models\User::find($this->uid);
+                $smessage['chat_id']=$user->telegram_id;
+                //$smessage['text']='sometext';
+                $token = config('services.telegram.bot_token');
+                $q= file_get_contents('https://api.telegram.org/bot'.$token.'/sendMessage?' . http_build_query($smessage));
 		//TODO сделать что-то если он не сработал
 		$tmessage=\App\Models\Tmessage::populateFromSendedmessage(json_decode($q,true)['result']);
 		
