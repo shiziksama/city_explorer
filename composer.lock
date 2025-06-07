@@ -3231,47 +3231,6 @@
             "time": "2021-09-25T23:10:38+00:00"
         },
         {
-            "name": "spacebib/oauth-underarmour",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Spacebib/oauth2-underarmour.git",
-                "reference": "b2376141e44784ff41ffe1cdc35c22ea568e041f"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Spacebib/oauth2-underarmour/zipball/b2376141e44784ff41ffe1cdc35c22ea568e041f",
-                "reference": "b2376141e44784ff41ffe1cdc35c22ea568e041f",
-                "shasum": ""
-            },
-            "require": {
-                "league/oauth2-client": "^2.4"
-            },
-            "require-dev": {
-                "ext-json": "*",
-                "mockery/mockery": "~0.9",
-                "phpunit/phpunit": "~4.0",
-                "squizlabs/php_codesniffer": "~2.0"
-            },
-            "default-branch": true,
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Spacebib\\OAuth2\\Client\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "Under Armour OAuth 2.0 support for the PHP League's OAuth 2.0 Client",
-            "support": {
-                "issues": "https://github.com/Spacebib/oauth2-underarmour/issues",
-                "source": "https://github.com/Spacebib/oauth2-underarmour/tree/master"
-            },
-            "time": "2020-03-31T03:16:07+00:00"
-        },
-        {
             "name": "spinen/laravel-geometry",
             "version": "2.4.0",
             "source": {
@@ -8333,9 +8292,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "spacebib/oauth-underarmour": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

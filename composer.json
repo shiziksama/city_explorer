@@ -18,7 +18,6 @@
         "laravel/framework": "^8.12",
         "laravel/tinker": "^2.5",
         "predis/predis": "^1.1",
-        "spacebib/oauth-underarmour": "dev-master",
         "spinen/laravel-geometry": "^2.3"
     },
     "require-dev": {
