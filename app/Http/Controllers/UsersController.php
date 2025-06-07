@@ -34,67 +34,18 @@ class UsersController extends Controller{
 		
 	}
 	
-	public function getProvider($provider_name){
-		if($provider_name=='underarmour'){
-			return new \Spacebib\OAuth2\Client\Provider\UnderArmour([
-				'clientId'          => config('services.underarmour.key'),
-				'clientSecret'      => config('services.underarmour.secret'),
-				'redirectUri'       => 'https://tracks.lamastravels.in.ua/connect/underarmour',
-				]);
-                }elseif($provider_name=='strava'){
+        public function getProvider($provider_name){
+                if($provider_name=='strava'){
                         return new \League\OAuth2\Client\Provider\Strava([
                                 'clientId'     => config('services.strava.client_id'),
                                 'clientSecret' => config('services.strava.client_secret'),
                                 'redirectUri'  => config('services.strava.redirect_uri'),
                         ]);
                 }
-		
-	}
+                abort(404);
+        }
 	public function connect($provider_name){
 		//сделать для разных провайдеров.
-		/*
-		//Установка redirect_url для underarmour
-		$data = ['grant_type'=> 'client_credentials', 'client_id'=> config('services.underarmour.key'), 'client_secret'=> config('services.underarmour.secret')];
-		$url = 'https://api.ua.com/v7.1/oauth2/access_token/';
-		$headers = array('Content-Type: application/x-www-form-urlencoded',	'Api-Key: '.config('services.underarmour.key'));
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, $url);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-		curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
-		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-		$response = curl_exec($curl);
-		curl_close($curl);
-		$token=json_decode($response,true)['access_token'];
-		
-		//https://developer.underarmour.com/updatekey/
-		//https://developer.underarmour.com/updatekey/
-		
-		
-		$data = ['callback_uri'=> 'https://tracks.lamastravels.in.ua/connect/underarmour', 'application_title'=> 'CityExplorer'];
-		$url = "https://api.ua.com/v7.2/api_client/".config('services.underarmour.key')."/";
-		$headers = array('Authorization: Bearer '.$token,'Api-Key: '.config('services.underarmour.key'));
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, $url);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
-		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-		$response = curl_exec($curl);
-		curl_close($curl);
-		var_dump(json_decode($response,true));
-		
-		
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, $url);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
-		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-		$response = curl_exec($curl);
-		curl_close($curl);
-		var_dump(json_decode($response,true));
-		
-		die();	*/
 		
 		$provider=$this->getProvider($provider_name);
 		
