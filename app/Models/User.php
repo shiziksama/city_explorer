@@ -39,11 +39,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-	public function getTracks($lat_from,$lng_from,$lat_to,$lng_to){
-		if($this->id==2){
-			$lt=new \App\LongboardTracks;
-			return $lt->get_tracks($lat_from,$lng_from,$lat_to,$lng_to);
-		}
-		return \App\Models\Track::where('uid',$this->id)->get();
-	}
+        public function getTracks($lat_from, $lng_from, $lat_to, $lng_to)
+        {
+                return \App\Models\Track::where('uid', $this->id)->get();
+        }
 }
