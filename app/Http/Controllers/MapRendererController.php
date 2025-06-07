@@ -116,7 +116,7 @@ class MapRendererController extends Controller
 		$draw->setFillColor(new \ImagickPixel('transparent'));
 		
 		
-		$tracks = $user->getTracks($lat_from,$lng_from,$lng_from,$lng_to);
+                $tracks = $user->getTracks($lat_from,$lng_from,$lat_to,$lng_to);
 		$has_tracks=false;
 		foreach($tracks as $k=>$track){
 			$lines=$track->get_tracks();
