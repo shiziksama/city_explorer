@@ -26,9 +26,9 @@ class TrackgetStrava implements ShouldQueue
     }
 	public function refreshToken($token){
 		$provider = new \League\OAuth2\Client\Provider\Strava([
-				'clientId'     => '100397',
-				'clientSecret' => 'ad541db6d7dee05bcd3eae208aa3762e045f864a',
-				'redirectUri'  => 'https://tracks.lamastravels.in.ua/connect/strava',
+				'clientId'     => config('services.strava.client_id'),
+				'clientSecret' => config('services.strava.client_secret'),
+				'redirectUri'  => config('services.strava.redirect_uri'),
 			]);
 		$newAccessToken = $provider->getAccessToken('refresh_token', [
 			'refresh_token' => $token->refresh_token,
@@ -155,8 +155,5 @@ class TrackgetStrava implements ShouldQueue
 		}
 		curl_close($curl);
 		var_dump(count(json_decode($response,true)['_embedded']['workouts']));
-		if(count(json_decode($response,true)['_embedded']['workouts'])!=0){
-			\App\Jobs\TrackgetUnderArmour::dispatch($token->id)->onQueue('parsers');
-		}
     }
 }

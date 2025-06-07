@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Token;
+use Illuminate\Support\Facades\DB;
 
 class TrackgetStravaSingle implements ShouldQueue 
 {
@@ -71,10 +72,10 @@ class TrackgetStravaSingle implements ShouldQueue
 		$track->uid=$token->user_id;
 		$date=new \DateTime($response['start_date_local']);
 		$track->date=$date->format('Y-m-d H:i:s');
-		if(\DB::table('tracks')->where('external_id',$track->external_id)->count()==0){
+		if(DB::table('tracks')->where('external_id',$track->external_id)->count()==0){
 			$track->save();
 		}
-		\App\Jobs\RemoveTilesJob::dispatch($token->user_id,$points_backup)->onQueue('tiles');
+		RemoveTilesJob::dispatch($token->user_id,$points_backup)->onQueue('tiles');
 		
 
 		
