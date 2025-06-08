@@ -7,6 +7,7 @@ use App\Jobs\TrackgetStravaSingle;
 use App\Models\Token;
 use App\Models\TrackGetter;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class StravaService
 {
@@ -46,41 +47,32 @@ class StravaService
             $options = ['after' => $s->format('U')];
         }
         $options['page'] = 1;
-        $headers = ['Authorization: Bearer ' . $token->access_token];
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        $url = 'https://www.strava.com/api/v3/athlete/activities?';
-        curl_setopt($curl, CURLOPT_URL, $url . http_build_query($options));
-        $response = json_decode(curl_exec($curl), true);
-        while (!empty($response)) {
-            foreach ($response as $activity) {
+        $url = 'https://www.strava.com/api/v3/athlete/activities';
+
+        do {
+            $response = Http::withToken($token->access_token)->get($url, $options);
+            $activities = $response->json();
+            if (empty($activities)) {
+                break;
+            }
+            foreach ($activities as $activity) {
                 if ($activity['start_date_local'] > $enddate) {
                     $enddate = $activity['start_date_local'];
                 }
                 TrackgetStravaSingle::dispatch($token->id, $activity['id'])->onQueue('parsers');
             }
             $options['page']++;
-            curl_setopt($curl, CURLOPT_URL, $url . http_build_query($options));
-            $response = json_decode(curl_exec($curl), true);
-        }
+        } while (!empty($activities));
+
         $getter->setData('enddate', $enddate);
         $getter->save();
-        curl_close($curl);
     }
 
     public function fetchSingleActivity($token_id, $track_id)
     {
         $token = Token::find($token_id);
-        $headers = ['Authorization: Bearer ' . $token->access_token];
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         $url = 'https://www.strava.com/api/v3/activities/' . $track_id;
-        curl_setopt($curl, CURLOPT_URL, $url);
-        $response = json_decode(curl_exec($curl), true);
+        $response = Http::withToken($token->access_token)->get($url)->json();
         $geometry = resolve('geometry');
         $points = \Polyline::decode($response['map']['polyline']);
         $points = array_chunk($points, 2);
@@ -107,6 +99,5 @@ class StravaService
             $track->save();
         }
         RemoveTilesJob::dispatch($token->user_id, $points_backup)->onQueue('tiles');
-        curl_close($curl);
     }
 }
