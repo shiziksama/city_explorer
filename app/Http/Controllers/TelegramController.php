@@ -37,23 +37,8 @@ class TelegramController extends Controller{
 			\App\Jobs\ParseFileJob::dispatch($message['document']['file_name'])->onQueue('parsers');
 			
 		}
-		if(!empty($message['location'])){
-			$s=\App\Models\Curpoint::create([
-						'lng'=>$message['location']['longitude'],
-						'lat'=>$message['location']['latitude'],
-						'timestamp'=>$tmessage->timestamp,
-						'uid'=>$tmessage->uid,
-						'mid'=>$tmessage->mid,
-						'horizontal_accuracy'=>$message['location']['horizontal_accuracy'] ?? 2000,//Больше, чем они могут прислать
-						]);
-			file_put_contents(base_path('debug.txt'),json_encode($s,JSON_PRETTY_PRINT),FILE_APPEND);
-			
-			if(empty($message['location']['live_period'])){
-				file_put_contents(base_path('debug.txt'),'need send data',FILE_APPEND);
-				\App\Jobs\SendResultsJob::dispatchSync($tmessage->mid);
-				//точка не лайв. Надо обработать и сообщить о длине и времени трека.
-			}
-		}
+               // Previously location points were stored for track recording.
+               // This functionality has been removed.
 		if(false){
 			$smessage=['chat_id'=>$tmessage->user->telegram_id];
 			$smessage['text']='sometext';
