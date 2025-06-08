@@ -17,3 +17,4 @@ lb_map/*
 lb_overlay/*
 osm/*
 *.o5m
+/.vscode
