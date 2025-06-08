@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Jobs\RemoveTilesJob;
+use App\Jobs\TrackgetStravaSingle;
 use App\Models\Token;
 use App\Models\TrackGetter;
+use Illuminate\Support\Facades\DB;
 
 class StravaService
 {
@@ -56,7 +59,7 @@ class StravaService
                 if ($activity['start_date_local'] > $enddate) {
                     $enddate = $activity['start_date_local'];
                 }
-                \App\Jobs\TrackgetStravaSingle::dispatch($token->id, $activity['id'])->onQueue('parsers');
+                TrackgetStravaSingle::dispatch($token->id, $activity['id'])->onQueue('parsers');
             }
             $options['page']++;
             curl_setopt($curl, CURLOPT_URL, $url . http_build_query($options));
@@ -100,10 +103,10 @@ class StravaService
         $track->uid = $token->user_id;
         $date = new \DateTime($response['start_date_local']);
         $track->date = $date->format('Y-m-d H:i:s');
-        if (\DB::table('tracks')->where('external_id', $track->external_id)->count() == 0) {
+        if (DB::table('tracks')->where('external_id', $track->external_id)->count() == 0) {
             $track->save();
         }
-        \App\Jobs\RemoveTilesJob::dispatch($token->user_id, $points_backup)->onQueue('tiles');
+        RemoveTilesJob::dispatch($token->user_id, $points_backup)->onQueue('tiles');
         curl_close($curl);
     }
 }
