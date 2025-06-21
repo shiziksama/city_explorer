@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use davidredgar\polyline\RDP;
+use App\Support\GeoUtils;
 
 class SimplificateTrack extends Command
 {
@@ -36,16 +37,7 @@ class SimplificateTrack extends Command
      *
      * @return int
      */
-	public function distance($lat1, $lng1, $lat2, $lng2){
-		return ceil(12745594 * asin(sqrt(
-			pow(sin(deg2rad($lat2-$lat1)/2),2)
-			+
-			cos(deg2rad($lat1)) *
-			cos(deg2rad($lat2)) *
-			pow(sin(deg2rad($lng2-$lng1)/2),2)
-		)));
-	}
-	public function simplificate_coords($coords){
+        public function simplificate_coords($coords){
 		$coord_lines=[];
 		$temp_line=[];
 		foreach($coords as $k=>$coord){
@@ -54,7 +46,12 @@ class SimplificateTrack extends Command
 				continue;
 			}
 			
-			$d=$this->distance($coord[0],$coord[1],$coords[$k-1][0],$coords[$k-1][1]);
+                        $d = GeoUtils::haversineDistance(
+                            $coord[0],
+                            $coord[1],
+                            $coords[$k-1][0],
+                            $coords[$k-1][1]
+                        );
 			if($d>1000){
 				$coord_lines[]=$temp_line;
 				$temp_line=[];
