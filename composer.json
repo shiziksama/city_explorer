@@ -9,7 +9,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
-        "david-r-edgar/rdp": "^0.0.1",
         "edwin-luijten/oauth2-strava": "^1.4",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^12.0",
