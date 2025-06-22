@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5ceb6f9e7f416f348d472e51a4f48fd7",
+    "content-hash": "00f0fb903baa3eb7ed3dd60db26bb8a8",
     "packages": [
         {
             "name": "brick/math",
@@ -615,55 +615,6 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
-        },
-        {
-            "name": "emcconville/google-map-polyline-encoding-tool",
-            "version": "v1.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/emcconville/google-map-polyline-encoding-tool.git",
-                "reference": "dbf3816936620b88f0fc4000fddd94b5ce13eadb"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/emcconville/google-map-polyline-encoding-tool/zipball/dbf3816936620b88f0fc4000fddd94b5ce13eadb",
-                "reference": "dbf3816936620b88f0fc4000fddd94b5ce13eadb",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "4.1.*",
-                "satooshi/php-coveralls": "dev-master",
-                "squizlabs/php_codesniffer": "2.0.0a2"
-            },
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "src/Polyline.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GNU"
-            ],
-            "authors": [
-                {
-                    "name": "Eric McConville",
-                    "email": "emcconville@emcconville.com"
-                }
-            ],
-            "description": "A simple class to handle polyline-encoding for Google Maps",
-            "keywords": [
-                "google",
-                "maps"
-            ],
-            "support": {
-                "issues": "https://github.com/emcconville/google-map-polyline-encoding-tool/issues",
-                "source": "https://github.com/emcconville/google-map-polyline-encoding-tool/tree/v1.3"
-            },
-            "time": "2016-04-05T01:18:39+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -6362,6 +6313,72 @@
                 "source": "https://github.com/hamcrest/hamcrest-php/tree/v2.1.1"
             },
             "time": "2025-04-30T06:54:44+00:00"
+        },
+        {
+            "name": "laravel/pint",
+            "version": "v1.22.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/pint.git",
+                "reference": "941d1927c5ca420c22710e98420287169c7bcaf7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/pint/zipball/941d1927c5ca420c22710e98420287169c7bcaf7",
+                "reference": "941d1927c5ca420c22710e98420287169c7bcaf7",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "ext-tokenizer": "*",
+                "ext-xml": "*",
+                "php": "^8.2.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.75.0",
+                "illuminate/view": "^11.44.7",
+                "larastan/larastan": "^3.4.0",
+                "laravel-zero/framework": "^11.36.1",
+                "mockery/mockery": "^1.6.12",
+                "nunomaduro/termwind": "^2.3.1",
+                "pestphp/pest": "^2.36.0"
+            },
+            "bin": [
+                "builds/pint"
+            ],
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "App\\": "app/",
+                    "Database\\Seeders\\": "database/seeders/",
+                    "Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nuno Maduro",
+                    "email": "enunomaduro@gmail.com"
+                }
+            ],
+            "description": "An opinionated code formatter for PHP.",
+            "homepage": "https://laravel.com",
+            "keywords": [
+                "format",
+                "formatter",
+                "lint",
+                "linter",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/pint/issues",
+                "source": "https://github.com/laravel/pint"
+            },
+            "time": "2025-05-08T08:38:12+00:00"
         },
         {
             "name": "mockery/mockery",
