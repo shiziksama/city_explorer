@@ -7,7 +7,6 @@ class GeoService
     /**
      * Decode a Google encoded polyline string.
      *
-     * @param  string  $polyline
      * @return array<int, array{0: float, 1: float}> Coordinates in [lon, lat] order
      */
     public static function decodePolyline(string $polyline): array
@@ -23,7 +22,7 @@ class GeoService
             $shift = 0;
             do {
                 $b = ord($polyline[$index++]) - 63;
-                $result |= ($b & 0x1f) << $shift;
+                $result |= ($b & 0x1F) << $shift;
                 $shift += 5;
             } while ($b >= 0x20);
             $delta = ($result & 1) ? ~($result >> 1) : ($result >> 1);
@@ -33,7 +32,7 @@ class GeoService
             $shift = 0;
             do {
                 $b = ord($polyline[$index++]) - 63;
-                $result |= ($b & 0x1f) << $shift;
+                $result |= ($b & 0x1F) << $shift;
                 $shift += 5;
             } while ($b >= 0x20);
             $delta = ($result & 1) ? ~($result >> 1) : ($result >> 1);
@@ -45,12 +44,14 @@ class GeoService
 
         return $points;
     }
+
     /**
      * Convert encoded polyline to MultiLineString GeoJSON string.
      */
     public static function polylineToMultiline(string $polyline): string
     {
         $coordinates = self::decodePolyline($polyline);
+
         return json_encode([
             'type' => 'MultiLineString',
             'coordinates' => [$coordinates],
@@ -81,6 +82,7 @@ class GeoService
                 $result[] = ['lat' => $coord[1], 'lng' => $coord[0]];
             }
         }
+
         return $result;
     }
 
@@ -102,6 +104,7 @@ class GeoService
         } else {
             return [];
         }
+
         return array_map(function ($line) {
             return array_map(function ($coord) {
                 return ['lat' => $coord[1], 'lng' => $coord[0]];
@@ -129,6 +132,31 @@ class GeoService
         $lines = array_map(function ($line) {
             return array_map('array_reverse', $line);
         }, $lines);
+
+        return json_encode([
+            'type' => 'MultiLineString',
+            'coordinates' => $lines,
+        ]);
+    }
+
+    public static function MultilineToOldfomat(string $geojson): string
+    {
+        $data = json_decode($geojson, true);
+        if (! is_array($data) || ! isset($data['type'])) {
+            return $geojson;
+        }
+        $lines = [];
+        if ($data['type'] === 'LineString') {
+            $lines[] = $data['coordinates'];
+        } elseif ($data['type'] === 'MultiLineString') {
+            $lines = $data['coordinates'];
+        } else {
+            return $geojson;
+        }
+        $lines = array_map(function ($line) {
+            return array_map('array_reverse', $line);
+        }, $lines);
+
         return json_encode([
             'type' => 'MultiLineString',
             'coordinates' => $lines,
@@ -141,6 +169,7 @@ class GeoService
     public static function geojsonToWkb(string $geojson): string
     {
         $geometry = resolve('geometry');
+
         return $geometry->parseGeoJson($geojson)->toWkb();
     }
 }

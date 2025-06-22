@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Jobs\RemoveTilesJob;
 use App\Jobs\TrackgetStravaSingle;
 use App\Models\Token;
+use App\Models\Track;
 use App\Models\TrackGetter;
 use App\Services\GeoService;
 use Illuminate\Support\Facades\DB;
@@ -72,18 +73,21 @@ class StravaService
     public function fetchSingleActivity($token_id, $track_id)
     {
         $token = Token::find($token_id);
-        $url = 'https://www.strava.com/api/v3/activities/' . $track_id;
+        $url = 'https://www.strava.com/api/v3/activities/'.$track_id;
         $response = Http::withToken($token->access_token)->get($url)->json();
-        $geometry = resolve('geometry');
+        $track = new Track;
+
         $geojson = GeoService::polylineToMultiline($response['map']['polyline']);
         $points_backup = GeoService::multilineToPoints($geojson);
-        $w = $geometry->parseGeoJson($geojson);
-        $track = new \App\Models\Track();
-        $track->track_original = $w->toWkb();
-        $track->track_simple = $w->toWkb();
+        $track->track_original = GeoService::MultilineToOldfomat($geojson);
+        $track->track_simple = $track->track_original;
         $track->remove_big_lines();
+
+        $track->track_original_geo = DB::raw("ST_GeomFromGeoJSON('".$geojson."')");
+        $track->track_simple_geo = $track->track_original_geo;
+
         $track->simplification_version = 255;
-        $track->external_id = 'strava_' . $track_id;
+        $track->external_id = 'strava_'.$track_id;
         $track->uid = $token->user_id;
         $date = new \DateTime($response['start_date_local']);
         $track->date = $date->format('Y-m-d H:i:s');
