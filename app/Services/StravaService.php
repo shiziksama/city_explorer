@@ -6,6 +6,7 @@ use App\Jobs\RemoveTilesJob;
 use App\Jobs\TrackgetStravaSingle;
 use App\Models\Token;
 use App\Models\TrackGetter;
+use App\Services\GeoService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -74,18 +75,9 @@ class StravaService
         $url = 'https://www.strava.com/api/v3/activities/' . $track_id;
         $response = Http::withToken($token->access_token)->get($url)->json();
         $geometry = resolve('geometry');
-        $points = \Polyline::decode($response['map']['polyline']);
-        $points = array_chunk($points, 2);
-        $points_backup = $points;
-        $points = array_map(function ($item) {
-            return implode(' ', $item);
-        }, $points);
-        $points_backup = array_map(function ($item) {
-            return ['lat' => $item[0], 'lng' => $item[1]];
-        }, $points_backup);
-        $points = array_values(array_filter($points));
-        $points = implode(',', $points);
-        $w = $geometry->parseWkt('MultiLineString((' . $points . '))');
+        $geojson = GeoService::polylineToMultiline($response['map']['polyline']);
+        $points_backup = GeoService::multilineToPoints($geojson);
+        $w = $geometry->parseGeoJson($geojson);
         $track = new \App\Models\Track();
         $track->track_original = $w->toWkb();
         $track->track_simple = $w->toWkb();
