@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\TrackController;
-use App\Http\Controllers\SimplificationController;
 use App\Http\Controllers\MapRendererController;
 use App\Http\Controllers\UsersController;
 /*
@@ -31,7 +30,6 @@ Route::get('/login/code/{code}',[UsersController::class,'login_with_code']);
 Route::get('/{userslug}',[TrackController::class,'mymap']);
 Route::get('/tracks/{id}',[TrackController::class,'singletrack']);
 
-Route::get('/simplificator',[SimplificationController::class,'get']);
 
 Route::get('/map_overlay/{uid}/{z}/{x}/{y}.png',[MapRendererController::class,'user_overlay']);
 

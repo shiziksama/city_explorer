@@ -86,7 +86,6 @@ class StravaService
         $track->track_original_geo = DB::raw("ST_GeomFromGeoJSON('".$geojson."')");
         $track->track_simple_geo = $track->track_original_geo;
 
-        $track->simplification_version = 255;
         $track->external_id = 'strava_'.$track_id;
         $track->uid = $token->user_id;
         $date = new \DateTime($response['start_date_local']);

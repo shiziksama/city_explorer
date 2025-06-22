@@ -64,7 +64,6 @@ class ParseFileJob implements ShouldQueue
 		$track=new \App\Models\Track();
 		$track->track_original=$w->toWkb();
 		$track->track_simple=$w->toWkb();
-		$track->simplification_version=255;
 		$track->external_id=$user_id.'|'.date('Y-m-d H').'|'.$this->filename;
 		$track->uid=$user_id;//shiziksama
 		$track->date=$date->format('Y-m-d H:i:s');
