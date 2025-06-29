@@ -139,6 +139,12 @@ class GeoService
         ]);
     }
 
+    /**
+     * Convert a MultiLineString GeoJSON to the old format.
+     * This is used for compatibility with older data formats.
+     *
+     * @return string WKB representation of the MultiLineString
+     */
     public static function MultilineToOldfomat(string $geojson): string
     {
         $data = json_decode($geojson, true);
@@ -156,11 +162,13 @@ class GeoService
         $lines = array_map(function ($line) {
             return array_map('array_reverse', $line);
         }, $lines);
+        $g = resolve('geometry');
 
-        return json_encode([
+        return $g->parseGeoJson(json_encode([
             'type' => 'MultiLineString',
             'coordinates' => $lines,
-        ]);
+        ]))->toWkb();
+
     }
 
     /**
