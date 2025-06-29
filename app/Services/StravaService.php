@@ -83,8 +83,8 @@ class StravaService
         $track->track_simple = $track->track_original;
         $track->remove_big_lines();
 
-        $track->track_original_geo = DB::raw("ST_GeomFromGeoJSON('".$geojson."')");
-        $track->track_simple_geo = $track->track_original_geo;
+        $track->track_original_geo = $geojson;
+        $track->track_simple_geo = $geojson;
 
         $track->external_id = 'strava_'.$track_id;
         $track->uid = $token->user_id;

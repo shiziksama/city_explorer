@@ -5,11 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Support\GeoUtils;
+use App\Traits\HasGeojsonAttributes;
 
 class Track extends Model
 {
-    use HasFactory;
-	public $timestamps = false;
+    use HasFactory, HasGeojsonAttributes;
+
+    public array $geojsonFields = [
+        'track_original_geo' => 5,
+        'track_simple_geo'   => 5,
+    ];
+
+    public $timestamps = false;
     public function parse_line($coords){
         $coord_lines=[];
 		$temp_line=[];
