@@ -6,14 +6,6 @@ use Illuminate\Support\Facades\DB;
 
 trait HasGeojsonAttributes
 {
-    /**
-     * Array of attributes that contain GeoJSON data.
-     * Key is column name, value is precision for ST_AsGeoJSON.
-     *
-     * @var array<string, int>
-     */
-    protected array $geojsonFields = [];
-
     protected static function bootHasGeojsonAttributes(): void
     {
         static::saving(function ($model) {
@@ -25,7 +17,7 @@ trait HasGeojsonAttributes
                 }
 
                 if (is_string($value)) {
-                    $model->attributes[$field] = DB::raw("ST_GeomFromGeoJSON(?)", [$value]);
+                    $model->attributes[$field] = DB::raw("ST_GeomFromGeoJSON('$value')");
                 }
             }
         });

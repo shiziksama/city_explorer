@@ -7,7 +7,6 @@ use App\Jobs\TrackgetStravaSingle;
 use App\Models\Token;
 use App\Models\Track;
 use App\Models\TrackGetter;
-use App\Services\GeoService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -82,6 +81,7 @@ class StravaService
         $track->track_original = GeoService::MultilineToOldfomat($geojson);
         $track->track_simple = $track->track_original;
         $track->remove_big_lines();
+        $track->simplification_version = 255;
 
         $track->track_original_geo = $geojson;
         $track->track_simple_geo = $geojson;
