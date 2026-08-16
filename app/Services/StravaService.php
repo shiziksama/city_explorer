@@ -9,6 +9,8 @@ use App\Models\Track;
 use App\Models\TrackGetter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use MatanYadaev\EloquentSpatial\Enums\Srid;
+use MatanYadaev\EloquentSpatial\Objects\MultiLineString;
 
 class StravaService
 {
@@ -83,8 +85,9 @@ class StravaService
         $track->remove_big_lines();
         $track->simplification_version = 255;
 
-        $track->track_original_geo = $geojson;
-        $track->track_simple_geo = $geojson;
+        $spatialTrack = MultiLineString::fromJson($geojson, Srid::WGS84);
+        $track->track_original_geo = $spatialTrack;
+        $track->track_simple_geo = $spatialTrack;
 
         $track->external_id = 'strava_'.$track_id;
         $track->uid = $token->user_id;

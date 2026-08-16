@@ -5,18 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Support\GeoUtils;
-use App\Traits\HasGeojsonAttributes;
+use MatanYadaev\EloquentSpatial\Objects\MultiLineString;
+use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 
 class Track extends Model
 {
-    use HasFactory, HasGeojsonAttributes;
-
-    public array $geojsonFields = [
-        'track_original_geo' => 5,
-        'track_simple_geo'   => 5,
-    ];
+    use HasFactory, HasSpatial;
 
     public $timestamps = false;
+
+    protected function casts(): array
+    {
+        return [
+            'track_original_geo' => MultiLineString::class,
+            'track_simple_geo' => MultiLineString::class,
+        ];
+    }
+
     public function parse_line($coords){
         $coord_lines=[];
 		$temp_line=[];

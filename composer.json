@@ -13,6 +13,7 @@
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.5",
+        "matanyadaev/laravel-eloquent-spatial": "^4.8",
         "predis/predis": "^1.1",
         "spinen/laravel-geometry": "^2.3"
     },
