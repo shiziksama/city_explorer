@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Tile;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -47,16 +48,16 @@ class User extends Authenticatable
     /**
      * @return Collection<int, Track>
      */
-    public function getTracks(float $lat_from, float $lng_from, float $lat_to, float $lng_to): Collection
+    public function getTracks(Tile $tile): Collection
     {
         $bounds = Polygon::fromArray([
             'type' => 'Polygon',
             'coordinates' => [[
-                [$lng_from, $lat_from],
-                [$lng_to, $lat_from],
-                [$lng_to, $lat_to],
-                [$lng_from, $lat_to],
-                [$lng_from, $lat_from],
+                [$tile->lngFrom(), $tile->latFrom()],
+                [$tile->lngTo(), $tile->latFrom()],
+                [$tile->lngTo(), $tile->latTo()],
+                [$tile->lngFrom(), $tile->latTo()],
+                [$tile->lngFrom(), $tile->latFrom()],
             ]],
         ], Srid::WGS84);
 

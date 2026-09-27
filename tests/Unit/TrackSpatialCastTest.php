@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Http\Controllers\MapRendererController;
 use App\Models\Track;
+use App\Support\Tile;
 use MatanYadaev\EloquentSpatial\Enums\Srid;
 use MatanYadaev\EloquentSpatial\Objects\LineString;
 use MatanYadaev\EloquentSpatial\Objects\MultiLineString;
@@ -59,7 +60,7 @@ class TrackSpatialCastTest extends TestCase
     {
         $geometry = MultiLineString::fromJson(self::GEOJSON, Srid::WGS84);
 
-        $segments = (new MapRendererController)->extractVisibleSegments($geometry, 50.0, 51.0, 30.0, 31.0);
+        $segments = (new MapRendererController)->extractVisibleSegments($geometry, new Tile(1, 1, 0));
 
         $this->assertCount(1, $segments);
         $this->assertInstanceOf(LineString::class, $segments->first());

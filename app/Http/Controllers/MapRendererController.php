@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\Tile;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use MatanYadaev\EloquentSpatial\Objects\LineString;
@@ -11,24 +12,23 @@ use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class MapRendererController extends Controller
 {
+    private const TILE_SIZE = 512;
+
     public function computeOutCode(
         Point $point,
-        float $lat_from,
-        float $lat_to,
-        float $lng_from,
-        float $lng_to,
+        Tile $tile,
     ): int {
         $result = 0;
-        if ($point->latitude < $lat_from) {
+        if ($point->latitude < $tile->latFrom()) {
             $result = $result | 1;
         }
-        if ($point->latitude > $lat_to) {
+        if ($point->latitude > $tile->latTo()) {
             $result = $result | 2;
         }
-        if ($point->longitude < $lng_from) {
+        if ($point->longitude < $tile->lngFrom()) {
             $result = $result | 4;
         }
-        if ($point->longitude > $lng_to) {
+        if ($point->longitude > $tile->lngTo()) {
             $result = $result | 8;
         }
 
@@ -36,14 +36,27 @@ class MapRendererController extends Controller
     }
 
     /**
+     * @return array{x: float, y: float}
+     */
+    public function projectToTilePixel(
+        Point $point,
+        Tile $tile,
+        int $pixels = self::TILE_SIZE,
+    ): array {
+        $globalTileY = (1 - log(tan(deg2rad($point->latitude)) + 1 / cos(deg2rad($point->latitude))) / pi()) / 2 * $tile->tilesPerAxis();
+
+        return [
+            'y' => ($globalTileY - $tile->y) * $pixels,
+            'x' => round(($point->longitude - $tile->lngFrom()) * $pixels / ($tile->lngTo() - $tile->lngFrom())),
+        ];
+    }
+
+    /**
      * @return Collection<int, LineString>
      */
     public function extractVisibleSegments(
         MultiLineString $tracks,
-        float $lat_from,
-        float $lat_to,
-        float $lng_from,
-        float $lng_to,
+        Tile $tile,
     ): Collection {
         $new_tracks = collect();
 
@@ -51,7 +64,7 @@ class MapRendererController extends Controller
             $points = $lineString->getGeometries()->values();
             $points_numbers = [];
             foreach ($points as $k => $point) {
-                $points_numbers[$k] = $this->computeOutCode($point, $lat_from, $lat_to, $lng_from, $lng_to);
+                $points_numbers[$k] = $this->computeOutCode($point, $tile);
             }
             // var_dump($point)
             $new_track = collect([]);
@@ -93,27 +106,20 @@ class MapRendererController extends Controller
         int $y,
     ): Response {
         $user = User::findOrFail($uid);
-        $items_count = pow(2, $zoom);
-
-        $lng_deg_per_item = 360 / $items_count;
-        $lng_from = -180 + $x * $lng_deg_per_item;
-        $lng_to = -180 + ($x + 1) * $lng_deg_per_item;
-
-        $lat_to = rad2deg(atan(sinh(pi() * (1 - 2 * $y / $items_count))));
-        $lat_from = rad2deg(atan(sinh(pi() * (1 - 2 * ($y + 1) / $items_count))));
+        $tile = new Tile($zoom, $x, $y);
 
         $map = new \Imagick;
-        $map->newImage(512, 512, new \ImagickPixel('transparent'));
+        $map->newImage(self::TILE_SIZE, self::TILE_SIZE, new \ImagickPixel('transparent'));
         $map->setImageFormat('png');
         $draw = new \ImagickDraw;
         $draw->setStrokeColor(new \ImagickPixel('rgba(255, 0, 0, 0.8)'));
-        if ($zoom >= 14) {
+        if ($tile->zoom >= 14) {
             $draw->setStrokeWidth(20);
-        } elseif ($zoom >= 13) {
+        } elseif ($tile->zoom >= 13) {
             $draw->setStrokeWidth(15);
-        } elseif ($zoom >= 11) {
+        } elseif ($tile->zoom >= 11) {
             $draw->setStrokeWidth(5);
-        } elseif ($zoom >= 7) {
+        } elseif ($tile->zoom >= 7) {
             $draw->setStrokeWidth(4);
         } else {
             $draw->setStrokeWidth(2);
@@ -123,21 +129,16 @@ class MapRendererController extends Controller
         $draw->setStrokeLineJoin(\Imagick::LINEJOIN_ROUND); // склейку в полилиниях деляем скругленной по фану.
         $draw->setFillColor(new \ImagickPixel('transparent'));
 
-        $tracks = $user->getTracks($lat_from, $lng_from, $lat_to, $lng_to);
+        $tracks = $user->getTracks($tile);
         $has_tracks = false;
         foreach ($tracks as $track) {
             $multiLines = $track->get_tracks();
-            $result_tracks = $this->extractVisibleSegments($multiLines, $lat_from, $lat_to, $lng_from, $lng_to);
+            $result_tracks = $this->extractVisibleSegments($multiLines, $tile);
             foreach ($result_tracks as $item) {
                 $has_tracks = true;
-                $line = $item->getGeometries()->map(function (Point $point) use ($lng_from, $lng_to, $items_count, $y): array {
-                    $l['y'] = (1 - log(tan(deg2rad($point->latitude)) + 1 / cos(deg2rad($point->latitude))) / pi()) / 2 * $items_count;
-                    $l['y'] -= $y;
-                    $l['y'] = 512 * $l['y'];
-                    $l['x'] = round(($point->longitude - $lng_from) * 512 / ($lng_to - $lng_from));
-
-                    return $l;
-                })->all();
+                $line = $item->getGeometries()
+                    ->map(fn (Point $point): array => $this->projectToTilePixel($point, $tile))
+                    ->all();
                 $draw->polyline(array_merge($line, array_reverse($line))); // линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
             }
         }
@@ -149,7 +150,7 @@ class MapRendererController extends Controller
             $imagefile = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAgAAAAIAAQMAAADOtka5AAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAADZJREFUeNrtwQEBAAAAgqD+r26IwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4g6CAAABAfU3XgAAAABJRU5ErkJggg==');
         }
 
-        $file_path = base_path('map_overlay/'.$uid.'/'.$zoom.'/'.$x.'/'.$y.'.png');
+        $file_path = base_path('map_overlay/'.$uid.'/'.$tile->zoom.'/'.$tile->x.'/'.$tile->y.'.png');
         $dirname = pathinfo($file_path, PATHINFO_DIRNAME);
         if (! is_dir($dirname)) {
             mkdir($dirname, 0755, true);
