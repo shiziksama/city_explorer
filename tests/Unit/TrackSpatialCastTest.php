@@ -38,4 +38,15 @@ class TrackSpatialCastTest extends TestCase
         $this->assertSame(4326, $track->track_original_geo->srid);
         $this->assertFalse($track->isDirty());
     }
+
+    public function test_it_returns_simple_spatial_track_in_renderer_coordinate_order(): void
+    {
+        $track = new Track;
+        $track->track_simple_geo = MultiLineString::fromJson(self::GEOJSON, Srid::WGS84);
+
+        $this->assertSame(
+            [[[50.4, 30.5], [50.5, 30.6]]],
+            $track->get_tracks(),
+        );
+    }
 }
