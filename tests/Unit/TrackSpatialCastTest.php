@@ -59,7 +59,7 @@ class TrackSpatialCastTest extends TestCase
     {
         $geometry = MultiLineString::fromJson(self::GEOJSON, Srid::WGS84);
 
-        $segments = (new MapRendererController)->get_tracks($geometry, 50.0, 51.0, 30.0, 31.0);
+        $segments = (new MapRendererController)->extractVisibleSegments($geometry, 50.0, 51.0, 30.0, 31.0);
 
         $this->assertCount(1, $segments);
         $this->assertInstanceOf(LineString::class, $segments->first());

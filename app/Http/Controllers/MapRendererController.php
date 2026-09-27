@@ -11,17 +11,6 @@ use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class MapRendererController extends Controller
 {
-    public function point_between(
-        Point $point,
-        float $lat_from,
-        float $lat_to,
-        float $lng_from,
-        float $lng_to,
-    ): bool {
-        return $point->latitude > $lat_from && $point->latitude < $lat_to
-            && $point->longitude > $lng_from && $point->longitude < $lng_to;
-    }
-
     public function computeOutCode(
         Point $point,
         float $lat_from,
@@ -49,7 +38,7 @@ class MapRendererController extends Controller
     /**
      * @return Collection<int, LineString>
      */
-    public function get_tracks(
+    public function extractVisibleSegments(
         MultiLineString $tracks,
         float $lat_from,
         float $lat_to,
@@ -146,7 +135,7 @@ class MapRendererController extends Controller
         $has_tracks = false;
         foreach ($tracks as $track) {
             $lines = $track->get_tracks();
-            $result_tracks = $this->get_tracks($lines, $lat_from, $lat_to, $lng_from, $lng_to);
+            $result_tracks = $this->extractVisibleSegments($lines, $lat_from, $lat_to, $lng_from, $lng_to);
             foreach ($result_tracks as $item) {
                 $has_tracks = true;
                 $line = $item->getGeometries()->map(function (Point $point) use ($lng_from, $lng_to, $items_count, $y): array {
