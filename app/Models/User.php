@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use MatanYadaev\EloquentSpatial\Enums\Srid;
+use MatanYadaev\EloquentSpatial\Objects\Polygon;
 
 class User extends Authenticatable
 {
@@ -43,6 +45,21 @@ class User extends Authenticatable
 
     public function getTracks($lat_from, $lng_from, $lat_to, $lng_to)
     {
-        return Track::where('uid', $this->id)->get();
+        $bounds = Polygon::fromArray([
+            'type' => 'Polygon',
+            'coordinates' => [[
+                [$lng_from, $lat_from],
+                [$lng_to, $lat_from],
+                [$lng_to, $lat_to],
+                [$lng_from, $lat_to],
+                [$lng_from, $lat_from],
+            ]],
+        ], Srid::WGS84);
+
+        return Track::query()
+            ->select(['id', 'track_simple_geo'])
+            ->where('uid', $this->id)
+            ->whereIntersects('track_simple_geo', $bounds)
+            ->get();
     }
 }
