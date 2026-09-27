@@ -106,18 +106,8 @@ class Track extends Model
         }
     }
 
-    public function get_tracks()
+    public function get_tracks(): MultiLineString
     {
-        $coordinates = $this->track_simple_geo->toArray()['coordinates'];
-
-        // GeoJSON stores points as [longitude, latitude], while the renderer
-        // and Leaflet consume them as [latitude, longitude].
-        return array_map(
-            fn (array $line) => array_map(
-                fn (array $point) => [$point[1], $point[0]],
-                $line,
-            ),
-            $coordinates,
-        );
+        return $this->track_simple_geo;
     }
 }

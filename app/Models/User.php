@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -43,7 +44,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function getTracks($lat_from, $lng_from, $lat_to, $lng_to)
+    /**
+     * @return Collection<int, Track>
+     */
+    public function getTracks(float $lat_from, float $lng_from, float $lat_to, float $lng_to): Collection
     {
         $bounds = Polygon::fromArray([
             'type' => 'Polygon',

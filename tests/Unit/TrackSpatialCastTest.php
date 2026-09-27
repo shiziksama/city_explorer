@@ -2,9 +2,12 @@
 
 namespace Tests\Unit;
 
+use App\Http\Controllers\MapRendererController;
 use App\Models\Track;
 use MatanYadaev\EloquentSpatial\Enums\Srid;
+use MatanYadaev\EloquentSpatial\Objects\LineString;
 use MatanYadaev\EloquentSpatial\Objects\MultiLineString;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 use Tests\TestCase;
 
 class TrackSpatialCastTest extends TestCase
@@ -39,14 +42,27 @@ class TrackSpatialCastTest extends TestCase
         $this->assertFalse($track->isDirty());
     }
 
-    public function test_it_returns_simple_spatial_track_in_renderer_coordinate_order(): void
+    public function test_it_returns_the_typed_simple_spatial_geometry(): void
     {
+        $geometry = MultiLineString::fromJson(self::GEOJSON, Srid::WGS84);
         $track = new Track;
-        $track->track_simple_geo = MultiLineString::fromJson(self::GEOJSON, Srid::WGS84);
+        $track->track_simple_geo = $geometry;
 
-        $this->assertSame(
-            [[[50.4, 30.5], [50.5, 30.6]]],
-            $track->get_tracks(),
-        );
+        $result = $track->get_tracks();
+
+        $this->assertInstanceOf(MultiLineString::class, $result);
+        $this->assertSame($geometry, $result);
+        $this->assertSame(json_decode(self::GEOJSON, true), $result->toArray());
+    }
+
+    public function test_renderer_segments_keep_spatial_point_types(): void
+    {
+        $geometry = MultiLineString::fromJson(self::GEOJSON, Srid::WGS84);
+
+        $segments = (new MapRendererController)->get_tracks($geometry, 50.0, 51.0, 30.0, 31.0);
+
+        $this->assertCount(1, $segments);
+        $this->assertInstanceOf(LineString::class, $segments->first());
+        $this->assertContainsOnlyInstancesOf(Point::class, $segments->first()->getGeometries());
     }
 }

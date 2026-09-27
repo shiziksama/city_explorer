@@ -3,39 +3,63 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
+use MatanYadaev\EloquentSpatial\Objects\LineString;
+use MatanYadaev\EloquentSpatial\Objects\MultiLineString;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class MapRendererController extends Controller
 {
-    public function point_between($point, $lat_from, $lat_to, $lng_from, $lng_to)
-    {
-        return $point[0] > $lat_from && $point[0] < $lat_to && $point[1] > $lng_from && $point[1] < $lng_to;
+    public function point_between(
+        Point $point,
+        float $lat_from,
+        float $lat_to,
+        float $lng_from,
+        float $lng_to,
+    ): bool {
+        return $point->latitude > $lat_from && $point->latitude < $lat_to
+            && $point->longitude > $lng_from && $point->longitude < $lng_to;
     }
 
-    public function computeOutCode($point, $lat_from, $lat_to, $lng_from, $lng_to)
-    {
+    public function computeOutCode(
+        Point $point,
+        float $lat_from,
+        float $lat_to,
+        float $lng_from,
+        float $lng_to,
+    ): int {
         $result = 0;
-        if ($point[0] < $lat_from) {
+        if ($point->latitude < $lat_from) {
             $result = $result | 1;
         }
-        if ($point[0] > $lat_to) {
+        if ($point->latitude > $lat_to) {
             $result = $result | 2;
         }
-        if ($point[1] < $lng_from) {
+        if ($point->longitude < $lng_from) {
             $result = $result | 4;
         }
-        if ($point[1] > $lng_to) {
+        if ($point->longitude > $lng_to) {
             $result = $result | 8;
         }
 
         return $result;
     }
 
-    public function get_tracks($tracks, $lat_from, $lat_to, $lng_from, $lng_to)
-    {
-        $new_tracks = collect([]);
-        $tracks = array_values($tracks);
-        // var_dump($tracks);
-        foreach ($tracks as $track) {
+    /**
+     * @return Collection<int, LineString>
+     */
+    public function get_tracks(
+        MultiLineString $tracks,
+        float $lat_from,
+        float $lat_to,
+        float $lng_from,
+        float $lng_to,
+    ): Collection {
+        $new_tracks = collect();
+
+        foreach ($tracks->getGeometries() as $track) {
+            $track = $track->getGeometries()->values();
             $points_numbers = [];
             foreach ($track as $k => $point) {
                 $points_numbers[$k] = $this->computeOutCode($point, $lat_from, $lat_to, $lng_from, $lng_to);
@@ -52,7 +76,7 @@ class MapRendererController extends Controller
                     $new_track->push($track[$k - 1]);
                     if ($k == count($points_numbers) - 1) {
                         $new_track->push($track[$k]);
-                        $new_tracks->push($new_track);
+                        $new_tracks->push(new LineString($new_track, $tracks->srid));
                         $new_track = collect([]); // нужно занулить, чтобы он не добавился после списка
                     }
 
@@ -61,7 +85,7 @@ class MapRendererController extends Controller
                 if (($number & $points_numbers[$k]) !== 0) { // значит не пересекает. Хватит. добавляем предыдущую?
                     if ($new_track->isNotEmpty()) {
                         $new_track->push($track[$k - 1]);
-                        $new_tracks->push($new_track);
+                        $new_tracks->push(new LineString($new_track, $tracks->srid));
                         $new_track = collect([]);
                     }
 
@@ -70,7 +94,7 @@ class MapRendererController extends Controller
 
             }
             if ($new_track->isNotEmpty()) {
-                $new_tracks->push($new_track);
+                $new_tracks->push(new LineString($new_track, $tracks->srid));
             }
             // var_dump($new_tracks);
             // var_dump($new_tracks);
@@ -81,12 +105,13 @@ class MapRendererController extends Controller
         return $new_tracks;
     }
 
-    public function user_overlay($uid, $zoom, $x, $y)
-    {
-
+    public function user_overlay(
+        int $uid,
+        int $zoom,
+        int $x,
+        int $y,
+    ): Response {
         $user = User::findOrFail($uid);
-
-        $lines = collect([]);
         $items_count = pow(2, $zoom);
 
         $lng_deg_per_item = 360 / $items_count;
@@ -124,15 +149,14 @@ class MapRendererController extends Controller
             $result_tracks = $this->get_tracks($lines, $lat_from, $lat_to, $lng_from, $lng_to);
             foreach ($result_tracks as $item) {
                 $has_tracks = true;
-                $item = $item->toArray();
-                $line = array_map(function ($item) use ($lng_from, $lng_to, $items_count, $y) {
-                    $l['y'] = (1 - log(tan(deg2rad($item[0])) + 1 / cos(deg2rad($item[0]))) / pi()) / 2 * $items_count;
+                $line = $item->getGeometries()->map(function (Point $point) use ($lng_from, $lng_to, $items_count, $y): array {
+                    $l['y'] = (1 - log(tan(deg2rad($point->latitude)) + 1 / cos(deg2rad($point->latitude))) / pi()) / 2 * $items_count;
                     $l['y'] -= $y;
                     $l['y'] = 512 * $l['y'];
-                    $l['x'] = round(($item[1] - $lng_from) * 512 / ($lng_to - $lng_from));
+                    $l['x'] = round(($point->longitude - $lng_from) * 512 / ($lng_to - $lng_from));
 
                     return $l;
-                }, $item);
+                })->all();
                 $draw->polyline(array_merge($line, array_reverse($line))); // линия идет в обе стороны, чтобы не было даже возможности нарисовать область внутри
             }
         }
