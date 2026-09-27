@@ -19,3 +19,4 @@ osm/*
 *.o5m
 /.vscode
 app/Console/Commands/Test.php
+/map_overlay

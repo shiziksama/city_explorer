@@ -21,7 +21,6 @@
 @endsection
 
 @section('content')
-{{--<a href="/tracks/{{$next}}" style="z-index:99999;position:absolute;top:0;right:0;">next track</a>--}}
 <div id="mapid"></div>
 <script>
 let clat = localStorage.getItem('lat');
@@ -49,25 +48,14 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     zoomOffset: -1,
     //accessToken: 'pk.eyJ1Ijoic2hpemlrc2FtYSIsImEiOiJja2I2bWNsbm0wMDJlMnFvYmRwanVma3ZnIn0.-2IBbm2m-ZnEv-EjvH7WAA'
 }).addTo(mymap);
-if(true){
-L.tileLayer('https://tracks.lamastravels.in.ua/map_overlay/{{$user->id}}/{z}/{x}/{y}.png', {
+
+L.tileLayer('/map_overlay/{{$user->id}}/{z}/{x}/{y}.png', {
 	maxZoom: 18,
     tileSize: 512,
     zoomOffset: -1,
 }).addTo(mymap);
-}
 
-@if($tracks->count()==0)
-var corner1 = L.latLng(50.4898,30.5394),corner2 = L.latLng(50.4366,30.4322),	bounds = L.latLngBounds(corner1, corner2);
-@else
-	@foreach($tracks as $tr)
-		var corner1 = L.latLng({!!$tr->getpoint()!!}),
-		corner2 = L.latLng({!!$tr->getpoint()!!}),
-		bounds = L.latLngBounds(corner1, corner2);
-		console.log(bounds);
-		@break;
-	@endforeach
-@endif
+{{--
 @foreach($tracks as $tr)
 @foreach($tr->get_original_tracks() as $k=>$line)
 var latlngs_o{{$tr->id}}_{{$k}} = {!!json_encode($line)!!};
@@ -83,6 +71,8 @@ bounds.extend(polyline{{$tr->id}}_{{$k}}.getBounds());
 @endforeach
 
 @endforeach
+--}}
+
 mymap.addEventListener('moveend',function(ev){
 	localStorage.setItem('lat',mymap.getCenter().lat);
 	localStorage.setItem('lng',mymap.getCenter().lng);
@@ -116,9 +106,6 @@ mymap.on('locationfound', onLocationFound);
 mymap.on('locationerror', onLocationError);
 
 mymap.locate({watch: true});
-
-	//console.log(bounds);
-//mymap.fitBounds(bounds);
 
 </script>
 @endsection
