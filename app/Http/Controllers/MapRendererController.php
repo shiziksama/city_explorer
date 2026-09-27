@@ -84,13 +84,8 @@ class MapRendererController extends Controller
     public function user_overlay($uid, $zoom, $x, $y)
     {
 
-        // $tracks = \App\Models\Track::where('uid',1)->get();
         $user = User::findOrFail($uid);
 
-        // $tracks=\App\Models\Track::where('uid',$uid)->get();
-        // $tracks = collect([\App\Models\Track::find(21)]);
-
-        $geo = resolve('geometry');
         $lines = collect([]);
         $items_count = pow(2, $zoom);
 
@@ -98,16 +93,13 @@ class MapRendererController extends Controller
         $lng_from = -180 + $x * $lng_deg_per_item;
         $lng_to = -180 + ($x + 1) * $lng_deg_per_item;
 
-        $lat_deg_per_item = (85.0511 * 2) / $items_count;
         $lat_to = rad2deg(atan(sinh(pi() * (1 - 2 * $y / $items_count))));
         $lat_from = rad2deg(atan(sinh(pi() * (1 - 2 * ($y + 1) / $items_count))));
 
         $map = new \Imagick;
         $map->newImage(512, 512, new \ImagickPixel('transparent'));
-        // $map->setBackgroundColor();
         $map->setImageFormat('png');
         $draw = new \ImagickDraw;
-        // $draw->setFillAlpha(0);
         $draw->setStrokeColor(new \ImagickPixel('rgba(255, 0, 0, 0.8)'));
         if ($zoom >= 14) {
             $draw->setStrokeWidth(20);
@@ -127,7 +119,7 @@ class MapRendererController extends Controller
 
         $tracks = $user->getTracks($lat_from, $lng_from, $lat_to, $lng_to);
         $has_tracks = false;
-        foreach ($tracks as $k => $track) {
+        foreach ($tracks as $track) {
             $lines = $track->get_tracks();
             $result_tracks = $this->get_tracks($lines, $lat_from, $lat_to, $lng_from, $lng_to);
             foreach ($result_tracks as $item) {
@@ -157,12 +149,8 @@ class MapRendererController extends Controller
         if (! is_dir($dirname)) {
             mkdir($dirname, 0755, true);
         }
-        // var_dump('ss');
         file_put_contents($file_path, $imagefile);
 
         return response($imagefile)->header('Content-type', 'image/png');
-        // return $map->getImageBlob();
-        // var_dump($lines);
-        // var_dump('some');
     }
 }
