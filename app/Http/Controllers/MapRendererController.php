@@ -158,9 +158,9 @@ class MapRendererController extends Controller
             mkdir($dirname, 0755, true);
         }
         // var_dump('ss');
-        file_put_contents($file_path,$imagefile);
+        file_put_contents($file_path, $imagefile);
 
-        return response($imagefile)->header('Content-type','image/png');
+        return response($imagefile)->header('Content-type', 'image/png');
         // return $map->getImageBlob();
         // var_dump($lines);
         // var_dump('some');
