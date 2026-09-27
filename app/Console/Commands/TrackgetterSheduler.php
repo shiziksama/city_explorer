@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Token;
+use Illuminate\Console\Command;
 
 class TrackgetterSheduler extends Command
 {
@@ -38,13 +38,13 @@ class TrackgetterSheduler extends Command
      */
     public function handle()
     {
-		$tokens=Token::all();
-		foreach($tokens as $token){
-                        if($token->service === 'underarmour'){
-                                continue;
-                        }
-			$string='\App\Jobs\Trackget'.ucfirst($token->service);
-			$string::dispatch($token->id)->onQueue('parsers');
-		}
+        $tokens = Token::all();
+        foreach ($tokens as $token) {
+            if ($token->service === 'underarmour') {
+                continue;
+            }
+            $string = '\App\Jobs\Trackget'.ucfirst($token->service);
+            $string::dispatch($token->id)->onQueue('parsers');
+        }
     }
 }

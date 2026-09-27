@@ -3,14 +3,15 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
 class LoginLink extends Mailable
 {
     use Queueable, SerializesModels;
-	public $code;
+
+    public $code;
+
     /**
      * Create a new message instance.
      *
@@ -18,7 +19,7 @@ class LoginLink extends Mailable
      */
     public function __construct($code)
     {
-		$this->code=$code;
+        $this->code = $code;
         //
     }
 

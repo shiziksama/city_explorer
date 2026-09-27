@@ -62,7 +62,7 @@ return [
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-		'lamastravels' => [
+        'lamastravels' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
             'host' => 'stylnash.mysql.ukraine.com.ua',

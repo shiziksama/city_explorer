@@ -35,32 +35,37 @@ class RemoveTiles extends Command
      *
      * @return int
      */
-	public function handleOnce(){
-		$tiles=\DB::table('tiles_to_delete')->orderBy('zoom','desc')->limit(3000)->get();
-		$tiles_new=[];
-		foreach($tiles as $tile){
-			$path=base_path('map_overlay/'.$tile->user_id.'/'.$tile->zoom.'/'.$tile->x.'/'.$tile->y.'.png');
-			if(file_exists($path)){
-				unlink($path);
-			}
-			\DB::table('tiles_to_delete')->where('user_id',$tile->user_id)->where('zoom',$tile->zoom)->where('x',$tile->x)->where('y',$tile->y)->delete();
-			if($tile->zoom<0)continue;
-			$tiles_new[]=json_encode(['x'=>floor($tile->x/2),'y'=>floor($tile->y/2),'zoom'=>$tile->zoom-1,'user_id'=>$tile->user_id]);
-		}
-		$tiles=array_values(array_unique($tiles_new));
-		$tiles=array_map(function($v){
-			return json_decode($v,true);
-		},$tiles);
-		\DB::table('tiles_to_delete')->insertOrIgnore($tiles);
-		
-		var_dump('count:'.\DB::table('tiles_to_delete')->count().'.max zoom:'.\DB::table('tiles_to_delete')->max('zoom'));
-	}
+    public function handleOnce()
+    {
+        $tiles = \DB::table('tiles_to_delete')->orderBy('zoom', 'desc')->limit(3000)->get();
+        $tiles_new = [];
+        foreach ($tiles as $tile) {
+            $path = base_path('map_overlay/'.$tile->user_id.'/'.$tile->zoom.'/'.$tile->x.'/'.$tile->y.'.png');
+            if (file_exists($path)) {
+                unlink($path);
+            }
+            \DB::table('tiles_to_delete')->where('user_id', $tile->user_id)->where('zoom', $tile->zoom)->where('x', $tile->x)->where('y', $tile->y)->delete();
+            if ($tile->zoom < 0) {
+                continue;
+            }
+            $tiles_new[] = json_encode(['x' => floor($tile->x / 2), 'y' => floor($tile->y / 2), 'zoom' => $tile->zoom - 1, 'user_id' => $tile->user_id]);
+        }
+        $tiles = array_values(array_unique($tiles_new));
+        $tiles = array_map(function ($v) {
+            return json_decode($v, true);
+        }, $tiles);
+        \DB::table('tiles_to_delete')->insertOrIgnore($tiles);
+
+        var_dump('count:'.\DB::table('tiles_to_delete')->count().'.max zoom:'.\DB::table('tiles_to_delete')->max('zoom'));
+    }
+
     public function handle()
     {
         $this->handleOnce();
+
         return;
-        for($i=16;$i>0;$i--){
-			$this->handleOnce();
-		}
+        for ($i = 16; $i > 0; $i--) {
+            $this->handleOnce();
+        }
     }
 }

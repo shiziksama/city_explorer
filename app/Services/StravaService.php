@@ -9,6 +9,7 @@ use App\Models\Track;
 use App\Models\TrackGetter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use League\OAuth2\Client\Provider\Strava;
 use MatanYadaev\EloquentSpatial\Enums\Srid;
 use MatanYadaev\EloquentSpatial\Objects\MultiLineString;
 
@@ -16,10 +17,10 @@ class StravaService
 {
     public function refreshToken(Token $token)
     {
-        $provider = new \League\OAuth2\Client\Provider\Strava([
-            'clientId'     => config('services.strava.client_id'),
+        $provider = new Strava([
+            'clientId' => config('services.strava.client_id'),
             'clientSecret' => config('services.strava.client_secret'),
-            'redirectUri'  => config('services.strava.redirect_uri'),
+            'redirectUri' => config('services.strava.redirect_uri'),
         ]);
         $newAccessToken = $provider->getAccessToken('refresh_token', [
             'refresh_token' => $token->refresh_token,
@@ -28,6 +29,7 @@ class StravaService
         $token->refresh_token = $newAccessToken->getRefreshToken();
         $token->expires_time = $newAccessToken->getExpires();
         $token->save();
+
         return $token;
     }
 
@@ -65,7 +67,7 @@ class StravaService
                 TrackgetStravaSingle::dispatch($token->id, $activity['id'])->onQueue('parsers');
             }
             $options['page']++;
-        } while (!empty($activities));
+        } while (! empty($activities));
 
         $getter->setData('enddate', $enddate);
         $getter->save();

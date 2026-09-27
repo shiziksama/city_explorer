@@ -30,18 +30,18 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-        'telegram' => [
-                'bot_token' => env('TELEGRAM_BOT_TOKEN'),
-        ],
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+    ],
 
-        'strava' => [
-                'client_id' => env('STRAVA_CLIENT_ID'),
-                'client_secret' => env('STRAVA_CLIENT_SECRET'),
-                'redirect_uri' => env('STRAVA_REDIRECT_URI', 'https://tracks.lamastravels.in.ua/connect/strava'),
-        ],
+    'strava' => [
+        'client_id' => env('STRAVA_CLIENT_ID'),
+        'client_secret' => env('STRAVA_CLIENT_SECRET'),
+        'redirect_uri' => env('STRAVA_REDIRECT_URI', 'https://tracks.lamastravels.in.ua/connect/strava'),
+    ],
 
-        'mapbox' => [
-                'token' => env('MAPBOX_ACCESS_TOKEN'),
-        ],
+    'mapbox' => [
+        'token' => env('MAPBOX_ACCESS_TOKEN'),
+    ],
 
 ];
