@@ -61,7 +61,7 @@ class MapRendererController extends Controller
                     continue;
                 }
 
-                if (($number & $points_numbers[$k - 1]) == 0 || $number == 0 || $points_numbers[$k - 1] == 0) { // Значит эта линия пересекает.
+                if (($number & $points_numbers[$k - 1]) == 0) { // Значит эта линия пересекает.
                     $new_track->push($track[$k - 1]);
                     if ($k == count($points_numbers) - 1) {
                         $new_track->push($track[$k]);
@@ -81,10 +81,6 @@ class MapRendererController extends Controller
             if ($new_track->isNotEmpty()) {
                 $new_tracks->push(new LineString($new_track, $tracks->srid));
             }
-            // var_dump($new_tracks);
-            // var_dump($new_tracks);
-
-            // var_dump($points_numbers);
         }
 
         return $new_tracks;
