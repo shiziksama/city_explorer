@@ -47,10 +47,10 @@ class MapRendererController extends Controller
     ): Collection {
         $new_tracks = collect();
 
-        foreach ($tracks->getGeometries() as $track) {
-            $track = $track->getGeometries()->values();
+        foreach ($tracks->getGeometries() as $lineString) {
+            $points = $lineString->getGeometries()->values();
             $points_numbers = [];
-            foreach ($track as $k => $point) {
+            foreach ($points as $k => $point) {
                 $points_numbers[$k] = $this->computeOutCode($point, $lat_from, $lat_to, $lng_from, $lng_to);
             }
             // var_dump($point)
@@ -62,9 +62,9 @@ class MapRendererController extends Controller
                 }
 
                 if (($number & $points_numbers[$k - 1]) == 0) { // Значит эта линия пересекает.
-                    $new_track->push($track[$k - 1]);
+                    $new_track->push($points[$k - 1]);
                     if ($k == count($points_numbers) - 1) {
-                        $new_track->push($track[$k]);
+                        $new_track->push($points[$k]);
                         $new_tracks->push(new LineString($new_track, $tracks->srid));
                         $new_track = collect([]); // нужно занулить, чтобы он не добавился после списка
                     }
@@ -72,7 +72,7 @@ class MapRendererController extends Controller
                     continue;
                 }
                 if ($new_track->isNotEmpty()) {
-                    $new_track->push($track[$k - 1]);
+                    $new_track->push($points[$k - 1]);
                     $new_tracks->push(new LineString($new_track, $tracks->srid));
                     $new_track = collect([]);
                 }
@@ -126,8 +126,8 @@ class MapRendererController extends Controller
         $tracks = $user->getTracks($lat_from, $lng_from, $lat_to, $lng_to);
         $has_tracks = false;
         foreach ($tracks as $track) {
-            $lines = $track->get_tracks();
-            $result_tracks = $this->extractVisibleSegments($lines, $lat_from, $lat_to, $lng_from, $lng_to);
+            $multiLines = $track->get_tracks();
+            $result_tracks = $this->extractVisibleSegments($multiLines, $lat_from, $lat_to, $lng_from, $lng_to);
             foreach ($result_tracks as $item) {
                 $has_tracks = true;
                 $line = $item->getGeometries()->map(function (Point $point) use ($lng_from, $lng_to, $items_count, $y): array {
