@@ -71,14 +71,10 @@ class MapRendererController extends Controller
 
                     continue;
                 }
-                if (($number & $points_numbers[$k]) !== 0) { // значит не пересекает. Хватит. добавляем предыдущую?
-                    if ($new_track->isNotEmpty()) {
-                        $new_track->push($track[$k - 1]);
-                        $new_tracks->push(new LineString($new_track, $tracks->srid));
-                        $new_track = collect([]);
-                    }
-
-                    continue;
+                if ($new_track->isNotEmpty()) {
+                    $new_track->push($track[$k - 1]);
+                    $new_tracks->push(new LineString($new_track, $tracks->srid));
+                    $new_track = collect([]);
                 }
 
             }
